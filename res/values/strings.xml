@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">LoboRoutes</string>
+    <string name="search_t">Search routes</string>
+    <string name="add_t">+ New Route</string>
+
+    <string name="title">Route title: </string>
+    <string name="descrip">Route description (optional): </string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="locus_name">Locus Name</string>
+    <string name="count_from">Count from:</string>
+
+
+</resources>

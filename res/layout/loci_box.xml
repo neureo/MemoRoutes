@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:padding="10dp"
+    android:layout_height="120dp">
+
+
+
+
+    <TextView
+        android:id="@+id/loci_num"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:gravity="center"
+        android:layout_weight="0"
+        android:layout_gravity="center_vertical"
+        android:textColor="#ffffff"
+        android:text="111"
+        android:background="@drawable/locilobo"/>
+
+
+    <ImageView
+        android:id="@+id/loci_image"
+        android:layout_width="120dp"
+        android:layout_weight="0"
+        android:background="#dddddd"
+        android:layout_height="100dp"
+        android:layout_margin="5dp"/>
+
+    <TextView
+        android:id="@+id/locus_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOCUS NAME"
+        android:textStyle="bold"
+        android:layout_gravity="center_vertical"
+        android:layout_margin="5dp"
+        android:layout_weight="1"/>
+
+
+
+</LinearLayout>
