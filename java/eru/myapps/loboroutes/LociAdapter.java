@@ -44,13 +44,14 @@ public class LociAdapter extends ArrayAdapter<Locus> {
 
         Locus locus = getItem(position);
 
-        BitmapLoader bitmapLoader = new BitmapLoader(imView,locus);
-        bitmapLoader.execute();
-
-//        Bitmap thumbnail = BitmapFactory.decodeFile(locus.getThumbnail());
+        if (locus.getPath().equals(MainActivity.TEXT_DEFAULT)){
+            imView.setImageResource(R.drawable.locus_default);
+        }else {
+            BitmapLoader bitmapLoader = new BitmapLoader(imView, locus);
+            bitmapLoader.execute();
+        }
 
         numView.setText(String.valueOf(locus.getNum()));
-//        imView.setImageBitmap(thumbnail);
         nameView.setText(locus.getName());
 
 

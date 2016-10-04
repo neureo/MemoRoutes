@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_NEW_ROUTE = 2;
     public static final int REQUEST_EDIT_ROUTE = 3;
 
+    public static final String TEXT_DEFAULT = "default";
 
 
     @Override

@@ -19,6 +19,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -99,7 +102,51 @@ public class RouteActivity extends AppCompatActivity {
             }
         });
 
+        registerForContextMenu(lociGrid);
 
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_context_menu,menu);
+    }
+
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+
+        switch (item.getItemId()) {
+            case (R.id.menu_delete):{
+                Locus remLocus = loci.remove(info.position);
+                dbHandler.deleteLocus(route_ID,remLocus.getNum());
+                lociAdapter.notifyDataSetChanged();
+                return true;
+            }
+            case R.id.menu_cancel :{
+                return false;
+            }
+            case R.id.menu_edit :{
+                /**
+                Intent editIntent = new Intent(getApplicationContext(),NewRoute.class);
+                Route editRoute = routes.get(info.position);
+
+                editIntent.putExtra("edit",true);
+                editIntent.putExtra("title",editRoute.getTitle());
+                editIntent.putExtra("description",editRoute.getDescription());
+                editIntent.putExtra("countFrom",editRoute.getCountFrom());
+                startActivityForResult(editIntent,REQUEST_EDIT_ROUTE);
+                return true;
+                 **/
+            return false;
+            }
+
+        }
+        return super.onContextItemSelected(item);
 
     }
 
@@ -118,9 +165,9 @@ public class RouteActivity extends AppCompatActivity {
 
             Bundle extras = data.getExtras();
             String name = extras.getString("name");
-            String path = extras.getString("imgPath");
-            String thumbPath = extras.getString("thumbPath");
-
+            String path, thumbPath;
+            path = extras.getString("imgPath");
+            thumbPath = extras.getString("thumbPath");
 
 
             Locus locus = new Locus(loci.size() + countFrom,name,path,thumbPath);

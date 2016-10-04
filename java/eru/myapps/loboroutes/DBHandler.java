@@ -30,6 +30,8 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_PATH = "path";
     private static final String COLUMN_THUMB = "thumb";
+    private static final String COLUMN_TEXT = "text";
+    private static final String COLUMN_AUDIO = "audio";
     //private static final String COLUMN_COVER = "cover";
     private static int len = 0;
 
@@ -54,6 +56,8 @@ public class DBHandler extends SQLiteOpenHelper {
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_PATH + " TEXT, " +
                 COLUMN_THUMB + " TEXT, " +
+                COLUMN_TEXT + " TEXT, " +
+                COLUMN_AUDIO + " TEXT, " +
                 COLUMN_ROUTE_ID + " INTEGER " + ");";
         db.execSQL(query);
 
@@ -141,6 +145,16 @@ public class DBHandler extends SQLiteOpenHelper {
         len--;
         db.close();
     }
+
+    // delete row
+    public void deleteLocus(int routeID, int num){
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_LOCI + " WHERE " + COLUMN_ROUTE_ID + "=" + routeID + " AND " + COLUMN_NUM + " = " + num + ";");
+        len--;
+        db.close();
+        updateUpperCount(routeID,num+1,-1);
+    }
+
 
     public ArrayList<Route> getRoutes(){
         ArrayList<Route> routes = new ArrayList<Route>();
@@ -355,4 +369,14 @@ public class DBHandler extends SQLiteOpenHelper {
 
         db.close();
     }
+
+    private void updateUpperCount(int routeID, int from, int diff) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query = "UPDATE " + TABLE_LOCI + " SET " + COLUMN_NUM + " = " + COLUMN_NUM + " + " + diff  +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_NUM + " >= " + from + ";";
+        db.execSQL(query);
+
+        db.close();
+    }
+
 }

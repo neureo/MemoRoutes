@@ -49,6 +49,7 @@ public class NewLocusActivity extends AppCompatActivity {
     Bitmap image;
     Bitmap thumbnail;
     boolean takenFromCamera = false;
+    boolean imageSelected = false;
 
 
     @Override
@@ -147,18 +148,24 @@ public class NewLocusActivity extends AppCompatActivity {
 
         boolean success = false;
         String name = nameEdit.getText().toString();
-        String stamp = "locus_" + String.valueOf(System.currentTimeMillis());
-        File thumbFile = new File(getExternalFilesDir(null), "locus_" + stamp + "_thumb.png");
-        File fullFile = new File(getExternalFilesDir(null), "locus_" + stamp + ".png");
+        if (imageSelected) {
+            String stamp = "locus_" + String.valueOf(System.currentTimeMillis());
+            File thumbFile = new File(getExternalFilesDir(null), "locus_" + stamp + "_thumb.png");
+            File fullFile = new File(getExternalFilesDir(null), "locus_" + stamp + ".png");
 
-        BitmapSaverTask thumbTask = new BitmapSaverTask(getApplicationContext(),thumbnail,thumbFile.getPath(),false);
-        thumbTask.execute();
+            BitmapSaverTask thumbTask = new BitmapSaverTask(getApplicationContext(), thumbnail, thumbFile.getPath(), false);
+            thumbTask.execute();
 
-        BitmapSaverTask fullTask = new BitmapSaverTask(getApplicationContext(),image,fullFile.getPath(),takenFromCamera);
-        fullTask.execute();
+            BitmapSaverTask fullTask = new BitmapSaverTask(getApplicationContext(), image, fullFile.getPath(), takenFromCamera);
+            fullTask.execute();
 
-        saveLocusIntent.putExtra("imgPath",fullFile.getAbsolutePath());
-        saveLocusIntent.putExtra("thumbPath",thumbFile.getAbsolutePath());
+            saveLocusIntent.putExtra("imgPath", fullFile.getAbsolutePath());
+            saveLocusIntent.putExtra("thumbPath", thumbFile.getAbsolutePath());
+        } else{
+            saveLocusIntent.putExtra("imgPath", MainActivity.TEXT_DEFAULT);
+            saveLocusIntent.putExtra("thumbPath", MainActivity.TEXT_DEFAULT);
+
+        }
         saveLocusIntent.putExtra("name",name);
         setResult(RESULT_OK,saveLocusIntent);
 
@@ -237,7 +244,7 @@ public class NewLocusActivity extends AppCompatActivity {
 
 
         }
-
+        imageSelected = true;
 
 
     }
