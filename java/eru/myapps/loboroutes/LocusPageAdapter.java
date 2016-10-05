@@ -26,18 +26,21 @@ import java.util.ArrayList;
 public class LocusPageAdapter extends PagerAdapter {
 
     private ArrayList<Locus> loci;
+    private ArrayList<Extra> extras;
     private Context context;
     private LayoutInflater inflater;
     private RelativeLayout locusView;
     private Button lastHook = null;
     private RelativeLayout hookGroup = null;
     private boolean addingExtra = false;
+    private int routeID;
 
     float hookX = 0;
     float hookY = 0;
-    LocusPageAdapter(Context ctx, ArrayList<Locus> loci){
+    LocusPageAdapter(Context ctx, int routeID, ArrayList<Locus> loci){
         context = ctx;
         this.loci = loci;
+        this.routeID = routeID;
     }
 
     @Override
@@ -53,6 +56,9 @@ public class LocusPageAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(final ViewGroup container, int position) {
+        final Locus locus = loci.get(position);
+        extras = MainActivity.dbHandler.getExtras(routeID,locus.getNum());
+
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         locusView = (RelativeLayout) inflater.inflate(R.layout.full_locus,container,false);
         ImageView imageView = (ImageView) locusView.findViewById(R.id.imageView);
@@ -65,10 +71,16 @@ public class LocusPageAdapter extends PagerAdapter {
         final Button cancelButton = (Button) locusView.findViewById(R.id.locus_extra_cancel);
 
 
+        nameView.setText(locus.getName());
+
+
         textButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 lastHook.setBackgroundResource(R.drawable.abc_on);
+                Extra newExtra = new Extra(routeID,locus.getNum(),Extra.TYPE_TEXT,"",(int)hookX,(int)hookY,-1);
+                newExtra.setID(MainActivity.dbHandler.addExtra(routeID,locus.getNum(),newExtra));
+                extras.add(newExtra);
                 addExtras.setVisibility(View.INVISIBLE);
                 addingExtra = false;
             }
@@ -78,6 +90,9 @@ public class LocusPageAdapter extends PagerAdapter {
             @Override
             public void onClick(View view) {
                 lastHook.setBackgroundResource(R.drawable.microphone);
+                Extra newExtra = new Extra(routeID,locus.getNum(),Extra.TYPE_AUDIO,"",(int)hookX,(int)hookY,-1);
+                newExtra.setID(MainActivity.dbHandler.addExtra(routeID,locus.getNum(),newExtra));
+                extras.add(newExtra);
                 addExtras.setVisibility(View.INVISIBLE);
                 addingExtra = false;
             }
@@ -87,6 +102,9 @@ public class LocusPageAdapter extends PagerAdapter {
             @Override
             public void onClick(View view) {
                 lastHook.setBackgroundResource(R.drawable.img_on);
+                Extra newExtra = new Extra(routeID,locus.getNum(),Extra.TYPE_IMG,"",(int)hookX,(int)hookY,-1);
+                newExtra.setID(MainActivity.dbHandler.addExtra(routeID,locus.getNum(),newExtra));
+                extras.add(newExtra);
                 addExtras.setVisibility(View.INVISIBLE);
                 addingExtra = false;
             }
@@ -103,8 +121,6 @@ public class LocusPageAdapter extends PagerAdapter {
         });
 
 
-        final Locus locus = loci.get(position);
-        nameView.setText(locus.getName());
         if(locus.getPath().equals(MainActivity.TEXT_DEFAULT)){
             imageView.setImageResource(R.drawable.locus_default);
         }else {
@@ -152,8 +168,35 @@ public class LocusPageAdapter extends PagerAdapter {
             }
         });
 
+
+        addHooks(locusView,extras);
+
         container.addView(locusView);
         return locusView;
+    }
+
+    private void addHooks(RelativeLayout locusView, ArrayList<Extra> extras) {
+        for (Extra e :extras){
+            int x = e.getX();
+            int y = e.getY();
+            String type = e.getType();
+            Button newHook = new Button(locusView.getContext());
+            if (type.equals(Extra.TYPE_TEXT)){
+                newHook.setBackgroundResource(R.drawable.abc_on);
+            }else if (type.equals(Extra.TYPE_AUDIO)){
+                newHook.setBackgroundResource(R.drawable.microphone);
+            }else{ // type img
+                newHook.setBackgroundResource(R.drawable.img_on);
+            }
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                    50,50);
+
+            params.setMargins(x -25 - 16 ,y + 25 + 16 ,0,0); // ?????
+
+            newHook.setLayoutParams(params);
+            locusView.addView(newHook,locusView.getChildCount());
+
+        }
     }
 
 

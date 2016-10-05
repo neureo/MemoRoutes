@@ -31,7 +31,7 @@ public class LocusActivity extends AppCompatActivity {
         routeID = extras.getInt("routeID");
         pos = extras.getInt("pos");
         loci = dbHandler.getLoci(routeID);
-        adapter = new LocusPageAdapter(this,loci);
+        adapter = new LocusPageAdapter(this,routeID,loci);
 
         pager.setAdapter(adapter);
         pager.setCurrentItem(pos);

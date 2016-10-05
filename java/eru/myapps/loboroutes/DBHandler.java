@@ -19,20 +19,30 @@ public class DBHandler extends SQLiteOpenHelper {
     private static final int DB_VERSION = 3;
     private static final String DB_NAME = "routes.db";
     private static final String TABLE_ROUTES = "routes";
-    private static final String TABLE_LOCI = "loci";
+    private static final String TABLE_EXTRAS = "loci";
+    private static final String TABLE_LOCI = "extras";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_TITLE = "title";
     private static final String COLUMN_DESCRIPTION = "description";
     private static final String COLUMN_COUNTFROM = "countfrom";
+    private static final String COLUMN_COVER = "cover";
 
     private static final String COLUMN_NUM = "num";
     private static final String COLUMN_ROUTE_ID = "routeID";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_PATH = "path";
     private static final String COLUMN_THUMB = "thumb";
-    private static final String COLUMN_TEXT = "text";
-    private static final String COLUMN_AUDIO = "audio";
-    //private static final String COLUMN_COVER = "cover";
+
+
+    private static final String COLUMN_LOCUS_NUM = "extraLocusNum";
+    private static final String COLUMN_TYPE = "extraType";
+    private static final String COLUMN_SOURCE = "extraSource";
+    private static final String COLUMN_X = "extraX";
+    private static final String COLUMN_Y = "extraY";
+    private static final String COLUMN_EXTRA_ID = "extraID";
+
+
+
     private static int len = 0;
 
     public DBHandler(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -47,8 +57,8 @@ public class DBHandler extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_TITLE + " TEXT, " +
                 COLUMN_COUNTFROM + " INTEGER, " +
-                COLUMN_DESCRIPTION + " TEXT " + ");";
-                // COLUMN_COVER + " TEXT " + ");";
+                COLUMN_DESCRIPTION + " TEXT " + 
+                COLUMN_COVER + " TEXT " + ");";
         db.execSQL(query);
 
         query = "CREATE TABLE " + TABLE_LOCI + "(" +
@@ -56,10 +66,19 @@ public class DBHandler extends SQLiteOpenHelper {
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_PATH + " TEXT, " +
                 COLUMN_THUMB + " TEXT, " +
-                COLUMN_TEXT + " TEXT, " +
-                COLUMN_AUDIO + " TEXT, " +
                 COLUMN_ROUTE_ID + " INTEGER " + ");";
         db.execSQL(query);
+
+        query = "CREATE TABLE " + TABLE_EXTRAS + "(" +
+                COLUMN_EXTRA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_ROUTE_ID + " INTEGER, " +
+                COLUMN_LOCUS_NUM + " INTEGER, " +
+                COLUMN_TYPE + " TEXT, " +
+                COLUMN_SOURCE + " TEXT, " +
+                COLUMN_X + " INTEGER, " +
+                COLUMN_Y + " INTEGER " + ");";
+        db.execSQL(query);
+
 
     }
 
@@ -67,6 +86,7 @@ public class DBHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int i, int i1) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LOCI);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXTRAS);
         onCreate(db);
 
     }
@@ -83,28 +103,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.close();
         len++;
     }
-/**
-    // add new locus
-    public boolean addLocusByName(String route, String name, int num){
-        if (!exists(route)) return false;
 
-        SQLiteDatabase db = getWritableDatabase();
-        Cursor c = db.rawQuery("SELECT " + COLUMN_ID +" FROM " + TABLE_ROUTES +
-                " WHERE " + COLUMN_TITLE + " = \"" + route + "\";",null);
-        c.moveToFirst();
-        int route_id = c.getInt(c.getColumnIndex(COLUMN_ID));
-
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME,name);
-        values.put(COLUMN_ROUTE_ID,route_id);
-        values.put(COLUMN_PATH, "drawable://" + R.drawable.locilobo);
-        values.put(COLUMN_NUM,num);
-        db.insert(TABLE_LOCI, null, values);
-        db.close();
-        return true;
-    }
-
-**/
     public boolean addLocus(int route_ID, Locus locus){
         SQLiteDatabase db = getWritableDatabase();
 
@@ -121,24 +120,9 @@ public class DBHandler extends SQLiteOpenHelper {
         return true;
     }
 
-    // add new locus
-    public boolean addLocusByPath(int route_ID, String name, String path, int num){
 
 
-        SQLiteDatabase db = getWritableDatabase();
-
-
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME,name);
-        values.put(COLUMN_PATH,path);
-        values.put(COLUMN_ROUTE_ID,route_ID);
-        values.put(COLUMN_NUM,num);
-        db.insert(TABLE_LOCI, null, values);
-        db.close();
-        return true;
-    }
-
-    // delete row
+    // delete route
     public void deleteRoute(String title){
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_ROUTES + " WHERE " + COLUMN_TITLE + "=\"" + title + "\";");
@@ -146,13 +130,20 @@ public class DBHandler extends SQLiteOpenHelper {
         db.close();
     }
 
-    // delete row
+    // delete locus
     public void deleteLocus(int routeID, int num){
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_LOCI + " WHERE " + COLUMN_ROUTE_ID + "=" + routeID + " AND " + COLUMN_NUM + " = " + num + ";");
-        len--;
         db.close();
         updateUpperCount(routeID,num+1,-1);
+    }
+
+
+    // delete extra
+    public void deleteExtra(Extra extra){
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_EXTRAS + " WHERE " + COLUMN_EXTRA_ID + "=" + extra.getID());
+        db.close();
     }
 
 
@@ -378,5 +369,74 @@ public class DBHandler extends SQLiteOpenHelper {
 
         db.close();
     }
+
+    public ArrayList<Extra> getExtras(int routeID , int num){
+        ArrayList<Extra> extras = new ArrayList<Extra>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_EXTRAS +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID +
+                " AND " + COLUMN_LOCUS_NUM + " = " + num +";";
+        Cursor cursor = db.rawQuery(query,null);
+        cursor.moveToFirst();
+
+        while (!cursor.isAfterLast()){
+            String type = cursor.getString(cursor.getColumnIndex(COLUMN_TYPE));
+            String source = cursor.getString(cursor.getColumnIndex(COLUMN_SOURCE));
+            int x = cursor.getInt(cursor.getColumnIndex(COLUMN_X));
+            int y = cursor.getInt(cursor.getColumnIndex(COLUMN_Y));
+            int ID = cursor.getInt(cursor.getColumnIndex(COLUMN_EXTRA_ID));
+
+            Extra extra = new Extra(routeID,num,type,source,x,y,ID);
+            extras.add(extra);
+            cursor.moveToNext();
+        }
+
+        cursor.close();
+        db.close();
+        return extras;
+    }
+
+    public int getExtraID(Extra e){
+
+        int ID = -1;
+        SQLiteDatabase db = getReadableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_EXTRAS +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + e.getRouteID() +
+                " AND " + COLUMN_LOCUS_NUM + " = " + e.getLocusNum() +
+                " AND " + COLUMN_X + " = " + e.getX() +
+                " AND " + COLUMN_Y + " = " + e.getY() + ";";
+
+        Cursor cursor = db.rawQuery(query,null);
+        cursor.moveToFirst();
+
+        if (!cursor.isAfterLast()){
+            ID = cursor.getInt(cursor.getColumnIndex(COLUMN_EXTRA_ID));
+        }
+
+        cursor.close();
+        db.close();
+        return ID;
+    }
+
+
+    public int addExtra(int route_ID, int locus_num, Extra extra){
+        SQLiteDatabase db = getWritableDatabase();
+
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ROUTE_ID,route_ID);
+        values.put(COLUMN_LOCUS_NUM,extra.getLocusNum());
+        values.put(COLUMN_TYPE,extra.getType());
+        values.put(COLUMN_SOURCE,extra.getSource());
+        values.put(COLUMN_X,extra.getX());
+        values.put(COLUMN_Y,extra.getY());
+        db.insert(TABLE_EXTRAS, null, values);
+        db.close();
+
+        return getExtraID(extra);
+    }
+
 
 }
