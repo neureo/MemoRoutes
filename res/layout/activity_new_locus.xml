@@ -73,11 +73,9 @@
         android:layout_height="150dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="0dp"
-        android:src="@drawable/bg"
+        android:src="@drawable/locus_default"
         android:layout_gravity="right"
         android:id="@+id/locusPicPreview" />
-
-
 
 
 

@@ -8,5 +8,5 @@
         android:id="@+id/hook_image"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:background="@drawable/locilobo"/>
+        android:background="@drawable/new_hook"/>
 </RelativeLayout>

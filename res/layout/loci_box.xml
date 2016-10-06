@@ -3,7 +3,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:padding="10dp"
-    android:layout_height="120dp">
+    android:layout_height="wrap_content">
 
 
 
@@ -17,12 +17,12 @@
         android:layout_gravity="center_vertical"
         android:textColor="#ffffff"
         android:text="111"
-        android:background="@drawable/locilobo"/>
+        android:background="@drawable/logo_dark"/>
 
 
     <ImageView
         android:id="@+id/loci_image"
-        android:layout_width="120dp"
+        android:layout_width="100dp"
         android:layout_weight="0"
         android:background="#dddddd"
         android:layout_height="100dp"

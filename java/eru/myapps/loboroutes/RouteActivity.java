@@ -48,11 +48,13 @@ public class RouteActivity extends AppCompatActivity {
     LociAdapter lociAdapter;
     TextView routeTitleView;
     Button addButton;
-    String route_title;
+//    String route_title;
     int countFrom;
     int route_ID;
     Route route;
     public final static int REQUEST_NEW_LOCUS = 3;
+    Intent callbackIntent = new Intent();
+    AlertDialog deleteDialog;
 
 
 
@@ -63,8 +65,7 @@ public class RouteActivity extends AppCompatActivity {
         dbHandler = new DBHandler(this,null,null,1);
 
         Bundle routeInfo = getIntent().getExtras();
-        route_title = routeInfo.getString("title");
-        route_ID = dbHandler.getRouteID(route_title);
+        route_ID = routeInfo.getInt("id");;
         route = dbHandler.getRoute(route_ID);
 
 
@@ -110,39 +111,55 @@ public class RouteActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_context_menu,menu);
+        inflater.inflate(R.menu.loci_context_menu,menu);
     }
 
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
 
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-
-        switch (item.getItemId()) {
-            case (R.id.menu_delete):{
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete this locus?");
+        builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
                 Locus remLocus = loci.remove(info.position);
                 dbHandler.deleteLocus(route_ID,remLocus.getNum());
+                for (int index = remLocus.getNum() - route.getCountFrom(); index < loci.size();index ++){
+                    Locus newLocus = loci.get(index);
+                    newLocus.setNum(newLocus.getNum()-1);
+                    loci.set(index,newLocus);
+                }
                 lociAdapter.notifyDataSetChanged();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteDialog.dismiss();
+            }
+        });
+
+        deleteDialog = builder.create();
+
+        switch (item.getItemId()) {
+            case (R.id.menu_loci_delete):{
+                deleteDialog.show();
                 return true;
             }
-            case R.id.menu_cancel :{
+            case R.id.menu_loci_cancel :{
                 return false;
             }
-            case R.id.menu_edit :{
-                /**
-                Intent editIntent = new Intent(getApplicationContext(),NewRoute.class);
-                Route editRoute = routes.get(info.position);
-
-                editIntent.putExtra("edit",true);
-                editIntent.putExtra("title",editRoute.getTitle());
-                editIntent.putExtra("description",editRoute.getDescription());
-                editIntent.putExtra("countFrom",editRoute.getCountFrom());
-                startActivityForResult(editIntent,REQUEST_EDIT_ROUTE);
+            case R.id.menu_loci_setCover :{
+                route.setCover(loci.get(info.position).getThumbnail());
+                int newID = dbHandler.editRoute(route_ID,route.getTitle(),route.getDescription(),route.getCountFrom(),route.getCover());
+                route.setId(newID);
+                route_ID = newID;
+                callbackIntent.putExtra("newID",route_ID);
+                setResult(RESULT_OK,callbackIntent);
                 return true;
-                 **/
-            return false;
             }
 
         }
@@ -168,6 +185,14 @@ public class RouteActivity extends AppCompatActivity {
             String path, thumbPath;
             path = extras.getString("imgPath");
             thumbPath = extras.getString("thumbPath");
+            if (route.getCover().equals(MainActivity.TEXT_DEFAULT)){
+                route.setCover(thumbPath);
+                int newID = dbHandler.editRoute(route_ID,route.getTitle(),route.getDescription(),route.getCountFrom(),route.getCover());
+                route.setId(newID);
+                route_ID = newID;
+                callbackIntent.putExtra("newID",newID);
+                setResult(RESULT_OK,callbackIntent);
+            }
 
 
             Locus locus = new Locus(loci.size() + countFrom,name,path,thumbPath);

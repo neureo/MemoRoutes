@@ -89,12 +89,7 @@ public class NewLocusActivity extends AppCompatActivity {
 
                 if (i == 0){ // "from camera" selected
                     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    File file = null;
-                    if (Build.VERSION.SDK_INT < 8 ){
-                        file = new File(Environment.getDataDirectory() + "locus_" + String.valueOf(System.currentTimeMillis()) + ".png");
-                    }else {
-                        file = new File(getExternalFilesDir(null), "locus_" + String.valueOf(System.currentTimeMillis()) + ".png");
-                    }
+                    File file = new File(getExternalFilesDir(null), "locus_" + String.valueOf(System.currentTimeMillis()) + ".png");
                     imageCaptureUri = Uri.fromFile(file);
 
                     try{
@@ -111,7 +106,7 @@ public class NewLocusActivity extends AppCompatActivity {
                     Intent intent = new Intent();
                     intent.setType("image/*");
                     intent.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(Intent.createChooser(intent, "Select Picture"),MainActivity.PICK_FROM_MEMORY);
+                    startActivityForResult(intent,MainActivity.PICK_FROM_MEMORY);
                     dialogInterface.cancel();
                 }
             }
@@ -123,19 +118,21 @@ public class NewLocusActivity extends AppCompatActivity {
 
     public void onChoosePressed(View view) {
         // test for permissions and ask for them if necessary
+        askPermissions();
+        dialog.show();
+    }
+
+    public void askPermissions() {
         if ( Build.VERSION.SDK_INT > 22 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO},
+                    MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
             if (ContextCompat.checkSelfPermission(getApplicationContext(),
                     Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
-                return;
             }
         }
-
-        dialog.show();
-
     }
 
     public void onCancel(View view) {
@@ -149,7 +146,7 @@ public class NewLocusActivity extends AppCompatActivity {
         boolean success = false;
         String name = nameEdit.getText().toString();
         if (imageSelected) {
-            String stamp = "locus_" + String.valueOf(System.currentTimeMillis());
+            String stamp = String.valueOf(System.currentTimeMillis());
             File thumbFile = new File(getExternalFilesDir(null), "locus_" + stamp + "_thumb.png");
             File fullFile = new File(getExternalFilesDir(null), "locus_" + stamp + ".png");
 
@@ -219,7 +216,7 @@ public class NewLocusActivity extends AppCompatActivity {
 
             }catch(Exception ex){
                 ex.printStackTrace();
-//                Toast.makeText(this,path,Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,"Image loading failed",Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -266,7 +263,7 @@ public class NewLocusActivity extends AppCompatActivity {
         return result;
     }
 
-    private Bitmap rotateImage(Bitmap bm, String path) {
+    public static Bitmap rotateImage(Bitmap bm, String path) {
         Matrix matrix = new Matrix();
         Bitmap rotated = null;
         try {
@@ -311,85 +308,7 @@ public class NewLocusActivity extends AppCompatActivity {
 
     }
 
-/**
-    public static Bitmap decodeBitmapFromStream(InputStream res, int reqWidth, int reqHeight) {
 
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(res, null, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeStream(res, null, options);
-    }
-**/
-
-/**
-    public static Bitmap decodeBitmapFromPath(String res, int reqWidth, int reqHeight) {
-
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(res, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        Bitmap myBitmap = BitmapFactory.decodeFile(res, options);
-
-        try {
-            ExifInterface exif = new ExifInterface(res);
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-            Log.d("EXIF", "Exif: " + orientation);
-            Matrix matrix = new Matrix();
-            if (orientation == 6) {
-                matrix.postRotate(90);
-            }
-            else if (orientation == 3) {
-                matrix.postRotate(180);
-            }
-            else if (orientation == 8) {
-                matrix.postRotate(270);
-            }
-            myBitmap = Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, false); // rotating bitmap
-        }
-        catch (Exception e) {
-
-        }
-        return myBitmap;
-    }
- **/
-/**
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight/2;
-        final int width = options.outWidth/2;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
-    }
-
- **/
 
     class BitmapSaverTask extends AsyncTask<Void, Void, Void> {
         private Bitmap image;
@@ -418,7 +337,6 @@ public class NewLocusActivity extends AppCompatActivity {
                 }
             }catch(Exception ex){
                 ex.printStackTrace();
-                Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT);
             }finally {
                 if (out != null){
                     try{

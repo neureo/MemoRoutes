@@ -1,12 +1,16 @@
 package eru.myapps.loboroutes;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -38,12 +42,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static final int REQUEST_READ_EXTERNAL_STORAGE_CODE = 22;
+    public static final int REQUEST_RECORD_AUDIO = 23;
     public static final int PICK_FROM_CAMERA = 100;
     public static final int PICK_FROM_MEMORY = 1;
     public static final int REQUEST_NEW_ROUTE = 2;
     public static final int REQUEST_EDIT_ROUTE = 3;
+    private static final int REQUEST_OPEN_ROUTE = 4;
 
     public static final String TEXT_DEFAULT = "default";
+    private int lastCalledRouteIndex;
+    AlertDialog deleteDialog;
+
 
 
     @Override
@@ -71,9 +80,10 @@ public class MainActivity extends AppCompatActivity {
                 Route route = routes.get(i);
                 Intent routeIntent = new Intent(MainActivity.this,RouteActivity.class);
                 Bundle routeInfo = new Bundle();
-                routeInfo.putString("title",route.getTitle());
+                routeInfo.putInt("id",route.getId());
                 routeIntent.putExtras(routeInfo);
-                startActivity(routeIntent);
+                lastCalledRouteIndex = i;
+                startActivityForResult(routeIntent,REQUEST_OPEN_ROUTE);
             }
         });
 
@@ -104,18 +114,39 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_context_menu,menu);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        routeAdapter.notifyDataSetChanged();
+    }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
 
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.ask_del_route));
+        builder.setPositiveButton(getString(R.string.confirm), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Route remRoute = routes.remove(info.position);
+                dbHandler.deleteRoute(remRoute.getTitle());
+                routeAdapter.notifyDataSetChanged();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteDialog.dismiss();
+            }
+        });
+
+        deleteDialog = builder.create();
 
 
         switch (item.getItemId()) {
             case (R.id.menu_delete):{
-                Route remRoute = routes.remove(info.position);
-                dbHandler.deleteRoute(remRoute.getTitle());
-                routeAdapter.notifyDataSetChanged();
+                deleteDialog.show();
                 return true;
             }
             case R.id.menu_cancel :{
@@ -161,15 +192,39 @@ public class MainActivity extends AppCompatActivity {
                 int index = letter.getInt("index");
                 Route route = routes.get(index);
                 int routeID = dbHandler.getRouteID(route.getTitle());
-                dbHandler.editRoute(routeID,newTitle,newDescription,countFrom);
+                dbHandler.editRoute(routeID,newTitle,newDescription,countFrom,route.getCover());
                 int newID = dbHandler.getRouteID(newTitle);
                 newRoute.setId(newID);
+                newRoute.setCover(route.getCover());
                 routes.set(index,newRoute);
+            }
+
+            if (requestCode == REQUEST_OPEN_ROUTE){
+                int newID = letter.getInt("newID");
+                String newCover = (dbHandler.getCover(newID));
+                Route route = routes.get(lastCalledRouteIndex);
+                route.setCover(newCover);
+                route.setId(newID);
+                routes.set(lastCalledRouteIndex,route);
             }
 
             routeAdapter.notifyDataSetChanged();
 
         }
+    }
+
+    public void askPermissions(){
+        if ( Build.VERSION.SDK_INT > 22 && ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
+            if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
     }
 
 }

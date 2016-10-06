@@ -5,7 +5,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.ThumbnailUtils;
 import android.os.AsyncTask;
+import android.util.EventLogTags;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,19 +36,20 @@ public class LociAdapter extends ArrayAdapter<Locus> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
 
-        View locusView = inflater.inflate(R.layout.loci_box,parent,false);
+        View locusView = inflater.inflate(R.layout.loci_box, parent, false);
         TextView numView = (TextView) locusView.findViewById(R.id.loci_num);
         ImageView imView = (ImageView) locusView.findViewById(R.id.loci_image);
         TextView nameView = (TextView) locusView.findViewById(R.id.locus_name);
 
         Locus locus = getItem(position);
 
-        if (locus.getPath().equals(MainActivity.TEXT_DEFAULT)){
+        if (locus.getPath().equals(MainActivity.TEXT_DEFAULT)) {
             imView.setImageResource(R.drawable.locus_default);
-        }else {
+        } else {
             BitmapLoader bitmapLoader = new BitmapLoader(imView, locus);
             bitmapLoader.execute();
         }
@@ -55,7 +58,7 @@ public class LociAdapter extends ArrayAdapter<Locus> {
         nameView.setText(locus.getName());
 
 
-    return locusView;
+        return locusView;
     }
 
     public Bitmap decodeBitmapFromPath(String res, int reqWidth, int reqHeight) {
@@ -117,6 +120,10 @@ public class LociAdapter extends ArrayAdapter<Locus> {
         @Override
         protected Void doInBackground(Void... params) {
             image = BitmapFactory.decodeFile(locus.getThumbnail());
+            int w = image.getWidth();
+            int h = image.getHeight();
+            int dim = Math.min(w,h);
+            image = ThumbnailUtils.extractThumbnail(image,dim,dim);
             return null;
         }
 

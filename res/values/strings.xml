@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LoboRoutes</string>
+    <string name="app_name">MemoRoute</string>
     <string name="search_t">Search routes</string>
     <string name="add_t">+ New Route</string>
 
@@ -10,6 +10,13 @@
     <string name="locus_name">Locus Name</string>
     <string name="count_from">Count from:</string>
     <string name="add">Add:</string>
+    <string name="add_text">Add text</string>
+    <string name="hide">hide</string>
+    <string name="ask_del_route">Delete this route?</string>
+    <string name="confirm">Confirm</string>
+    <string name="tap_to_record">Tap to record</string>
+    <string name="tap_to_play">Tap to play</string>
+    <string name="set_as_cover">Set as cover</string>
 
 
 </resources>

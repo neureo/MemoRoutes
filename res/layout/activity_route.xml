@@ -34,7 +34,7 @@
         android:textColor="#ffffff"
         android:layout_gravity="end"
         android:layout_marginTop="-60dp"
-        android:background="@drawable/locilobo"
+        android:background="@drawable/logo_dark"
         android:text="+"
         android:textSize="30dp" />
 

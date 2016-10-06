@@ -57,7 +57,7 @@ public class DBHandler extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_TITLE + " TEXT, " +
                 COLUMN_COUNTFROM + " INTEGER, " +
-                COLUMN_DESCRIPTION + " TEXT " + 
+                COLUMN_DESCRIPTION + " TEXT, " +
                 COLUMN_COVER + " TEXT " + ");";
         db.execSQL(query);
 
@@ -97,6 +97,7 @@ public class DBHandler extends SQLiteOpenHelper {
         values.put(COLUMN_TITLE,route.getTitle());
         values.put(COLUMN_DESCRIPTION,route.getDescription());
         values.put(COLUMN_COUNTFROM,route.getCountFrom());
+        values.put(COLUMN_COVER,route.getCover());
 
         SQLiteDatabase db = getWritableDatabase();
         db.insert(TABLE_ROUTES,null,values);
@@ -160,7 +161,8 @@ public class DBHandler extends SQLiteOpenHelper {
             String descrip = cursor.getString(cursor.getColumnIndex(COLUMN_DESCRIPTION));
             int countFrom = cursor.getInt(cursor.getColumnIndex(COLUMN_COUNTFROM));
             int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-            Route r = new Route(title,descrip,countFrom,id);
+            String cover = cursor.getString(cursor.getColumnIndex(COLUMN_COVER));
+            Route r = new Route(title,descrip,countFrom,id, cover);
             routes.add(r);
             cursor.moveToNext();
         }
@@ -171,25 +173,6 @@ public class DBHandler extends SQLiteOpenHelper {
 
     }
 
-    public Route getRoute(String title){
-        if (!exists(title)) return null;
-
-        SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_ROUTES +
-                " WHERE " + COLUMN_TITLE + " = \"" + title + "\";"  ;
-        Cursor cursor = db.rawQuery(query,null);
-        cursor.moveToFirst();
-
-        String descrip = cursor.getString(cursor.getColumnIndex(COLUMN_DESCRIPTION));
-        int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-        int countFrom = cursor.getInt(cursor.getColumnIndex(COLUMN_COUNTFROM));
-        Route r = new Route(title,descrip,countFrom,id);
-
-        cursor.close();
-        db.close();
-        return r;
-
-    }
 
     public ArrayList<String> getTitles(){
 
@@ -260,8 +243,9 @@ public class DBHandler extends SQLiteOpenHelper {
         int countFrom = c.getInt(c.getColumnIndex(COLUMN_COUNTFROM));
         String title = c.getString(c.getColumnIndex(COLUMN_TITLE));
         String description = c.getString(c.getColumnIndex(COLUMN_DESCRIPTION));
+        String cover = c.getString(c.getColumnIndex(COLUMN_COVER));
 
-        Route route = new Route(title,description,countFrom,ID);
+        Route route = new Route(title,description,countFrom,ID,cover);
         c.close();
         db.close();
         return route;
@@ -331,12 +315,13 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
 
-    public void editRoute(int routeID, String newTitle, String newDescription, int countFrom) {
+    public int editRoute(int routeID, String newTitle, String newDescription, int countFrom, String cover) {
         Route route = getRoute(routeID);
         int oldCount = route.getCountFrom();
         String query = "UPDATE " + TABLE_ROUTES + " SET " + COLUMN_TITLE + " = \"" + newTitle +
                 "\", " + COLUMN_DESCRIPTION + " = \"" + newDescription + "\", " + COLUMN_COUNTFROM + " = " + countFrom +
-                " WHERE " + COLUMN_ID + " = " + routeID + ";";
+                 ", " + COLUMN_COVER + " = \"" + cover + "\"" +
+                 " WHERE " + COLUMN_ID + " = " + routeID + ";";
 
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL(query);
@@ -348,8 +333,22 @@ public class DBHandler extends SQLiteOpenHelper {
             updateCount(newID, oldCount, countFrom);
         }
 
+        return newID;
 
     }
+
+    public String getCover(int id) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT * FROM " + TABLE_ROUTES +
+                " WHERE " + COLUMN_ID + " = " + id + ";",null);
+        c.moveToFirst();
+
+        String cover = c.getString(c.getColumnIndex(COLUMN_COVER));
+
+        return cover;
+
+    }
+
 
     private void updateCount(int routeID, int oldCount, int countFrom) {
         int difCount = countFrom - oldCount;

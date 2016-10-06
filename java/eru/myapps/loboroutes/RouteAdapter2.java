@@ -1,6 +1,9 @@
 package eru.myapps.loboroutes;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +31,17 @@ class RouteAdapter2 extends ArrayAdapter<Route> {
         ImageView coverView = (ImageView) view.findViewById(R.id.route_cover);
 
         titleView.setText(route.getTitle());
-        coverView.setImageResource(R.drawable.locilobo );
+        String cover = route.getCover();
+        if (cover.equals(MainActivity.TEXT_DEFAULT)) {
+            coverView.setImageResource(R.drawable.locus_default);
+        }else{
+            Bitmap bitmap = BitmapFactory.decodeFile(route.getCover());
+            int h = bitmap.getHeight();
+            int w = bitmap.getWidth();
+            int dim = Math.min(h, w);
+            bitmap = ThumbnailUtils.extractThumbnail(bitmap, dim, dim);
+            coverView.setImageBitmap(bitmap);
+        }
 
         return view;
 

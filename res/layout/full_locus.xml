@@ -83,18 +83,26 @@
 
     <LinearLayout
         android:id="@+id/locus_textLayout"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:orientation="vertical"
         android:background="#dddddd"
+        android:gravity="center_horizontal"
+        android:layout_margin="20dp"
         android:visibility="invisible">
 
         <TextView
-            android:id="@+id/locus_textView"
-            android:layout_width="match_parent"
+            android:id="@+id/extra_textView"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="testing Text"
             android:layout_margin="30dp" />
+        <Button
+            android:id="@+id/extra_textHideButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hide"/>
 
     </LinearLayout>
 
