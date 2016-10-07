@@ -17,6 +17,8 @@
     <string name="tap_to_record">Tap to record</string>
     <string name="tap_to_play">Tap to play</string>
     <string name="set_as_cover">Set as cover</string>
+    <string name="move">Move</string>
+    <string name="choose_pos">Choose new position</string>
 
 
 </resources>

@@ -244,13 +244,13 @@ public class LocusPageAdapter extends PagerAdapter {
                 builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-
                         dialog.cancel();
                     }
                 });
                 builder.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        recordListener.stop();
                         String fileName = recordListener.getFileName();
                         if (fileName != null){
                             Extra newExtra = new Extra(routeID,l.getNum(),Extra.TYPE_AUDIO,fileName,(int)hookX,(int)hookY,-1);
@@ -269,6 +269,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
+                        recordListener.discard();
                         locusView.removeView(lastHook);
                     }
                 });
@@ -508,7 +509,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 if (!recording) {
                     String stamp = String.valueOf(System.currentTimeMillis());
                     mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-                    mFileName += "/extra_" + stamp + ".3gp";
+                    mFileName += "/"+MainActivity.folder_extra + "/extra_" + stamp + ".3gp";
 
                     recorder = new MediaRecorder();
                     recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -565,6 +566,23 @@ public class LocusPageAdapter extends PagerAdapter {
                 playing = !playing;
             }
 
+        }
+
+        public void stop() {
+            if(recording){
+                recorder.stop();
+                recorder.release();
+                recorder = null;
+                recorded = true;
+            }
+        }
+
+        public void discard(){
+            stop();
+            if (recorded){
+                File file = new File(mFileName);
+                file.delete();
+            }
         }
     }
 

@@ -147,8 +147,11 @@ public class NewLocusActivity extends AppCompatActivity {
         String name = nameEdit.getText().toString();
         if (imageSelected) {
             String stamp = String.valueOf(System.currentTimeMillis());
-            File thumbFile = new File(getExternalFilesDir(null), "locus_" + stamp + "_thumb.png");
-            File fullFile = new File(getExternalFilesDir(null), "locus_" + stamp + ".png");
+//            File thumbFile = new File(getExternalFilesDir(null), "locus_" + stamp + "_thumb.png");
+//            File fullFile = new File(getExternalFilesDir(null), "locus_" + stamp + ".png");
+
+            File thumbFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/locus_" + stamp + "_thumb.png");
+            File fullFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/locus_" + stamp + ".png");
 
             BitmapSaverTask thumbTask = new BitmapSaverTask(getApplicationContext(), thumbnail, thumbFile.getPath(), false);
             thumbTask.execute();

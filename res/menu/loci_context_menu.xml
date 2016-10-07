@@ -9,6 +9,14 @@
 
 
     <item
+        android:id="@+id/menu_loci_move"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:title="@string/move" />
+
+
+
+    <item
         android:id="@+id/menu_loci_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

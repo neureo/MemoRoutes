@@ -48,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_NEW_ROUTE = 2;
     public static final int REQUEST_EDIT_ROUTE = 3;
     private static final int REQUEST_OPEN_ROUTE = 4;
+    public static String folder_main = "MemoRoute";
+    public static String folder_extra = folder_main + "/extras";
+    public static String folder_loci = folder_main + "/loci";
 
     public static final String TEXT_DEFAULT = "default";
     private int lastCalledRouteIndex;
@@ -59,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        createFolder(folder_main);
+        createFolder(folder_extra);
+        createFolder(folder_loci);
+
 
 
         dbHandler = new DBHandler(this,null,null,1);
@@ -106,6 +114,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void createFolder(String folder) {
+        File f = new File(Environment.getExternalStorageDirectory(), folder);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+    }
+
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -130,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Route remRoute = routes.remove(info.position);
-                dbHandler.deleteRoute(remRoute.getTitle());
+                dbHandler.deleteRoute(remRoute.getTitle(),true);
                 routeAdapter.notifyDataSetChanged();
             }
         });

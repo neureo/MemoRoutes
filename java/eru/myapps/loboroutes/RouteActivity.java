@@ -1,21 +1,7 @@
 package eru.myapps.loboroutes;
 
-import android.Manifest;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,20 +10,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class RouteActivity extends AppCompatActivity {
@@ -55,6 +32,7 @@ public class RouteActivity extends AppCompatActivity {
     public final static int REQUEST_NEW_LOCUS = 3;
     Intent callbackIntent = new Intent();
     AlertDialog deleteDialog;
+    AlertDialog moveDialog;
 
 
 
@@ -119,6 +97,7 @@ public class RouteActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
 
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        final int locusNum = loci.get(info.position).getNum();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Delete this locus?");
@@ -126,7 +105,7 @@ public class RouteActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Locus remLocus = loci.remove(info.position);
-                dbHandler.deleteLocus(route_ID,remLocus.getNum());
+                dbHandler.deleteLocus(route_ID,remLocus.getNum(),true);
                 for (int index = remLocus.getNum() - route.getCountFrom(); index < loci.size();index ++){
                     Locus newLocus = loci.get(index);
                     newLocus.setNum(newLocus.getNum()-1);
@@ -144,9 +123,58 @@ public class RouteActivity extends AppCompatActivity {
 
         deleteDialog = builder.create();
 
+
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle(getString(R.string.choose_pos));
+        View builderView = getLayoutInflater().inflate(R.layout.dialog_move_locus,null);
+        builder.setView(builderView);
+        final NumberPicker picker = (NumberPicker) builderView.findViewById(R.id.locus_posPicker);
+        picker.setMinValue(route.getCountFrom());
+        picker.setMaxValue(route.getCountFrom() + loci.size()-1);
+        picker.setValue(route.getCountFrom()+info.position);
+        builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                int choice = picker.getValue();
+                if (choice != loci.get(info.position).getNum()){
+                    Locus editLocus = loci.remove(info.position);
+                    for(int index = info.position; index < loci.size(); index++){
+                        Locus locus = loci.get(index);
+                        locus.setNum(locus.getNum()-1);
+                        loci.set(index,locus);
+                    }
+                    dbHandler.deleteLocus(route_ID,editLocus.getNum(),false);
+                    editLocus.setNum(choice);
+                    int newIndex = choice - route.getCountFrom();
+                    loci.add(newIndex,editLocus);
+                    for(int index = newIndex+1; index < loci.size(); index++){
+                        Locus locus = loci.get(index);
+                        locus.setNum(locus.getNum()+1);
+                        loci.set(index,locus);
+                    }
+                    dbHandler.updateExtraNum(route_ID,locusNum,choice);
+                    dbHandler.updateUpperCount(route_ID,choice+1,+1);
+                    dbHandler.addLocus(route_ID,editLocus);
+                }
+                lociAdapter.notifyDataSetChanged();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteDialog.dismiss();
+            }
+        });
+
+        moveDialog = builder.create();
+
         switch (item.getItemId()) {
             case (R.id.menu_loci_delete):{
                 deleteDialog.show();
+                return true;
+            }
+            case (R.id.menu_loci_move):{
+                moveDialog.show();
                 return true;
             }
             case R.id.menu_loci_cancel :{

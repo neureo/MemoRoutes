@@ -124,19 +124,36 @@ public class DBHandler extends SQLiteOpenHelper {
 
 
     // delete route
-    public void deleteRoute(String title){
+    public void deleteRoute(String title, boolean alsoContents){
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_ROUTES + " WHERE " + COLUMN_TITLE + "=\"" + title + "\";");
         len--;
+        int id = getRouteID(title);
+        if (alsoContents){
+            deleteLoci(id);
+        }
         db.close();
     }
 
+    public void deleteLoci(int routeID){
+        ArrayList<Locus> loci = getLoci(routeID);
+        for (Locus l : loci){
+            deleteLocus(routeID,l.getNum(),true);
+        }
+    }
+
     // delete locus
-    public void deleteLocus(int routeID, int num){
+    public void deleteLocus(int routeID, int num, boolean alsoContents){
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_LOCI + " WHERE " + COLUMN_ROUTE_ID + "=" + routeID + " AND " + COLUMN_NUM + " = " + num + ";");
         db.close();
         updateUpperCount(routeID,num+1,-1);
+        if (alsoContents){
+            ArrayList<Extra> extras = getExtras(routeID,num);
+            for (Extra e: extras){
+                deleteExtra(e);
+            }
+        }
     }
 
 
@@ -174,26 +191,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
 
-    public ArrayList<String> getTitles(){
 
-        ArrayList<String> titles = new ArrayList<String>();
-        SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT " + COLUMN_TITLE + " FROM " + TABLE_ROUTES +" ORDER BY "+ COLUMN_TITLE + " ASC;"  ;
-        Cursor cursor = db.rawQuery(query,null);
-        cursor.moveToFirst();
-
-        int index = 0;
-        while (!cursor.isAfterLast()){
-            String title = cursor.getString(cursor.getColumnIndex(COLUMN_TITLE));
-            titles.add(title);
-            cursor.moveToNext();
-        }
-
-        cursor.close();
-        db.close();
-        return titles;
-
-    }
 
     public int getIndex(String title) {
         SQLiteDatabase db = getReadableDatabase();
@@ -254,35 +252,13 @@ public class DBHandler extends SQLiteOpenHelper {
 
 
 
-    public ArrayList<String> getLociNames(String routeTitle){
-
-        ArrayList<String> names = new ArrayList<String>();
-        int routeID = getRouteID(routeTitle);
-
-        SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT " + COLUMN_NAME + " FROM " + TABLE_LOCI +
-                " WHERE " + COLUMN_ROUTE_ID + " = "+routeID+";"  ;
-        Cursor cursor = db.rawQuery(query,null);
-        cursor.moveToFirst();
-
-        while (!cursor.isAfterLast()){
-            if (cursor.getCount()>0){
-                names.add(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)));
-                cursor.moveToNext();
-            }
-        }
-
-        cursor.close();
-        db.close();
-        return names;
-
-    }
 
     public ArrayList<Locus> getLoci(int routeID){
         ArrayList<Locus> loci = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_LOCI +
-                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + ";";
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " ORDER BY "+ COLUMN_NUM + " ASC;"  ;
+
         Cursor cursor = db.rawQuery(query,null);
         cursor.moveToFirst();
 
@@ -355,17 +331,33 @@ public class DBHandler extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         String query = "UPDATE " + TABLE_LOCI + " SET " + COLUMN_NUM + " = " + COLUMN_NUM + " + " + difCount  +
                 " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + ";";
+
+        String query2 = "UPDATE " + TABLE_EXTRAS + " SET " + COLUMN_LOCUS_NUM + " = " + COLUMN_LOCUS_NUM + " + " + difCount  +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_LOCUS_NUM + " >= " + countFrom + ";";
+        db.execSQL(query2);
+
         db.execSQL(query);
 
         db.close();
     }
 
-    private void updateUpperCount(int routeID, int from, int diff) {
+    public void updateUpperCount(int routeID, int from, int diff) {
         SQLiteDatabase db = getWritableDatabase();
         String query = "UPDATE " + TABLE_LOCI + " SET " + COLUMN_NUM + " = " + COLUMN_NUM + " + " + diff  +
                 " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_NUM + " >= " + from + ";";
         db.execSQL(query);
+        String query2 = "UPDATE " + TABLE_EXTRAS + " SET " + COLUMN_LOCUS_NUM + " = " + COLUMN_LOCUS_NUM + " + " + diff  +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_LOCUS_NUM + " >= " + from + ";";
+        db.execSQL(query2);
 
+        db.close();
+    }
+
+    public void updateExtraNum(int routeID, int oldNum, int newNum) {
+        SQLiteDatabase db = getWritableDatabase();
+        String query2 = "UPDATE " + TABLE_EXTRAS + " SET " + COLUMN_LOCUS_NUM + " = " + newNum  +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_LOCUS_NUM + " = " + oldNum + ";";
+        db.execSQL(query2);
         db.close();
     }
 
