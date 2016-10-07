@@ -28,6 +28,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
             android:id="@+id/newtitle">
 
         </EditText>
@@ -44,6 +45,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textCapSentences"
             android:id="@+id/newdescr">
 
         </EditText>

@@ -193,7 +193,7 @@ public class LocusPageAdapter extends PagerAdapter {
                         EditText dialogEdit = (EditText) dialog.findViewById(R.id.extra_text);
                         String text = dialogEdit.getText().toString();
                         Extra newExtra = new Extra(routeID,l.getNum(),Extra.TYPE_TEXT,text,(int)hookX,(int)hookY,-1);
-                        newExtra.setID(MainActivity.dbHandler.addExtra(routeID,l.getNum(),newExtra));
+                        newExtra.setID(MainActivity.dbHandler.addExtra(routeID,newExtra));
                         extras.add(newExtra);
                         dialog.dismiss();
                         locusView.removeView(lastHook);
@@ -254,7 +254,7 @@ public class LocusPageAdapter extends PagerAdapter {
                         String fileName = recordListener.getFileName();
                         if (fileName != null){
                             Extra newExtra = new Extra(routeID,l.getNum(),Extra.TYPE_AUDIO,fileName,(int)hookX,(int)hookY,-1);
-                            newExtra.setID(MainActivity.dbHandler.addExtra(routeID,l.getNum(),newExtra));
+                            newExtra.setID(MainActivity.dbHandler.addExtra(routeID,newExtra));
                             extras.add(newExtra);
                             locusView.removeView(lastHook);
                             addHook(locusView,newExtra);

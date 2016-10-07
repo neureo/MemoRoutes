@@ -114,7 +114,7 @@ public class LocusActivity extends AppCompatActivity {
                     new BitmapSaverTask(getApplicationContext(), image, fullFile.getAbsolutePath(), true);
             saverTask.execute();
             Extra newExtra = new Extra(routeID, lastNum, Extra.TYPE_IMG, fullFile.getAbsolutePath(), lastX, lastY, -1);
-            newExtra.setID(MainActivity.dbHandler.addExtra(routeID, lastNum, newExtra));
+            newExtra.setID(MainActivity.dbHandler.addExtra(routeID,  newExtra));
             adapter.addHook(locusView,newExtra);
             adapter.notifyDataSetChanged();
         }
@@ -141,7 +141,7 @@ public class LocusActivity extends AppCompatActivity {
                 saverTask.execute();
 
                 Extra newExtra = new Extra(routeID, lastNum, Extra.TYPE_IMG, fullFile.getAbsolutePath(), lastX, lastY, -1);
-                newExtra.setID(MainActivity.dbHandler.addExtra(routeID, lastNum, newExtra));
+                newExtra.setID(MainActivity.dbHandler.addExtra(routeID,  newExtra));
                 adapter.addHook(locusView,newExtra);
                 adapter.notifyDataSetChanged();
 

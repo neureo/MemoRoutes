@@ -145,15 +145,17 @@ public class DBHandler extends SQLiteOpenHelper {
     // delete locus
     public void deleteLocus(int routeID, int num, boolean alsoContents){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_LOCI + " WHERE " + COLUMN_ROUTE_ID + "=" + routeID + " AND " + COLUMN_NUM + " = " + num + ";");
+        db.execSQL("DELETE FROM " + TABLE_LOCI +
+                " WHERE " + COLUMN_ROUTE_ID + "=" + routeID +
+                " AND " + COLUMN_NUM + " = " + num + ";");
         db.close();
-        updateUpperCount(routeID,num+1,-1);
         if (alsoContents){
             ArrayList<Extra> extras = getExtras(routeID,num);
             for (Extra e: extras){
                 deleteExtra(e);
             }
         }
+        updateUpperCount(routeID,num+1,-1);
     }
 
 
@@ -346,7 +348,9 @@ public class DBHandler extends SQLiteOpenHelper {
         String query = "UPDATE " + TABLE_LOCI + " SET " + COLUMN_NUM + " = " + COLUMN_NUM + " + " + diff  +
                 " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_NUM + " >= " + from + ";";
         db.execSQL(query);
-        String query2 = "UPDATE " + TABLE_EXTRAS + " SET " + COLUMN_LOCUS_NUM + " = " + COLUMN_LOCUS_NUM + " + " + diff  +
+
+        String query2 = "UPDATE " + TABLE_EXTRAS +
+                " SET " + COLUMN_LOCUS_NUM + " = " + COLUMN_LOCUS_NUM + " + " + diff  +
                 " WHERE " + COLUMN_ROUTE_ID + " = " + routeID + " AND " + COLUMN_LOCUS_NUM + " >= " + from + ";";
         db.execSQL(query2);
 
@@ -412,7 +416,7 @@ public class DBHandler extends SQLiteOpenHelper {
     }
 
 
-    public int addExtra(int route_ID, int locus_num, Extra extra){
+    public int addExtra(int route_ID, Extra extra){
         SQLiteDatabase db = getWritableDatabase();
 
 

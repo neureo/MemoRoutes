@@ -143,7 +143,8 @@ public class RouteActivity extends AppCompatActivity {
                         locus.setNum(locus.getNum()-1);
                         loci.set(index,locus);
                     }
-                    dbHandler.deleteLocus(route_ID,editLocus.getNum(),false);
+                    ArrayList<Extra> extras = dbHandler.getExtras(route_ID,locusNum);
+                    dbHandler.deleteLocus(route_ID,editLocus.getNum(),true);
                     editLocus.setNum(choice);
                     int newIndex = choice - route.getCountFrom();
                     loci.add(newIndex,editLocus);
@@ -152,9 +153,12 @@ public class RouteActivity extends AppCompatActivity {
                         locus.setNum(locus.getNum()+1);
                         loci.set(index,locus);
                     }
-                    dbHandler.updateExtraNum(route_ID,locusNum,choice);
-                    dbHandler.updateUpperCount(route_ID,choice+1,+1);
+                    dbHandler.updateUpperCount(route_ID,choice,+1);
                     dbHandler.addLocus(route_ID,editLocus);
+                    for (Extra e : extras){
+                        e.setLocusNum(choice);
+                        dbHandler.addExtra(route_ID,e);
+                    }
                 }
                 lociAdapter.notifyDataSetChanged();
             }
