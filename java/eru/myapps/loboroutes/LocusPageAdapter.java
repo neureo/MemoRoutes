@@ -107,7 +107,7 @@ public class LocusPageAdapter extends PagerAdapter {
         final Button cancelButton = (Button) locusView.findViewById(R.id.locus_extra_cancel);
 
 
-        nameView.setText(locus.getName());
+        nameView.setText(locus.getNum() + ". " + locus.getName());
 
         setupButtons(locusView, addExtras, locus, textButton,microButton,imgButton,cancelButton);
 
@@ -154,9 +154,7 @@ public class LocusPageAdapter extends PagerAdapter {
 
                 Button newHook = new Button(container.getContext());
                 newHook.setBackgroundResource(R.drawable.new_hook);
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-                        50,50);
-                //params.setMargins(50,50,0,0);
+                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(50,50);
 
                 params.setMargins(x -25 - 16 ,y + 25 + 16 ,0,0); // ?????
 
@@ -405,7 +403,7 @@ public class LocusPageAdapter extends PagerAdapter {
                     int w = bitmap.getWidth();
                     int dim = Math.min(h, w);
                     bitmap = ThumbnailUtils.extractThumbnail(bitmap, dim, dim);
-                    bitmap = Bitmap.createScaledBitmap(bitmap, 50, 50, false);
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, false);
                 }
                 bitmap = addDoubleBorder(bitmap,2);
                 if (android.os.Build.VERSION.SDK_INT < 16) {
@@ -433,10 +431,29 @@ public class LocusPageAdapter extends PagerAdapter {
 
         newHook.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public boolean onLongClick(View view) {
-                ((RelativeLayout)view.getParent()).removeView(newHook);
-                MainActivity.dbHandler.deleteExtra(e);
-                notifyDataSetChanged();
+            public boolean onLongClick(final View view) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Delete selected content?");
+                builder.setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        ((RelativeLayout)view.getParent()).removeView(newHook);
+                        MainActivity.dbHandler.deleteExtra(e);
+                        notifyDataSetChanged();
+
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog = builder.create();
+                dialog.show();
+
+
                 return true;
             }
         });

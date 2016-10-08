@@ -107,7 +107,7 @@ public class LocusActivity extends AppCompatActivity {
             String imgPath = imageCaptureUri.getPath();
             Bitmap image = BitmapFactory.decodeFile(imgPath);
             image = NewLocusActivity.rotateImage(image, imgPath);
-            image = NewLocusActivity.scaleBitmap(image, 500, 500);
+            //image = NewLocusActivity.scaleBitmap(image, 500, 500);
             String stamp = String.valueOf(System.currentTimeMillis());
             File fullFile = new File(getExternalFilesDir(null), "extra_" + stamp + ".png");
             BitmapSaverTask saverTask =
@@ -130,8 +130,8 @@ public class LocusActivity extends AppCompatActivity {
 
                 String imgPath = new File(getRealPathFromUri(imageCaptureUri)).getAbsolutePath();
                 image = NewLocusActivity.rotateImage(image,imgPath);
-                adapter.tempImage = NewLocusActivity.scaleBitmap(image, 50, 50);
-                image = NewLocusActivity.scaleBitmap(image, 500, 500);
+                adapter.tempImage = NewLocusActivity.scaleBitmap(image, 100, 100);
+                //image = NewLocusActivity.scaleBitmap(image, 500, 500);
 
 
                 String stamp = String.valueOf(System.currentTimeMillis());
