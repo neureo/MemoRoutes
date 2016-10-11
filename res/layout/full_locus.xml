@@ -81,6 +81,14 @@
         android:gravity="center"
         android:layout_alignParentBottom="true"/>
 
+    <Button
+        android:id="@+id/hookShowButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:layout_above="@id/locus_full_name"
+        android:background="@drawable/show_hook"/>
+
     <LinearLayout
         android:id="@+id/locus_textLayout"
         android:layout_width="match_parent"

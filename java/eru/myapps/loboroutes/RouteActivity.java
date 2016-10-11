@@ -30,6 +30,7 @@ public class RouteActivity extends AppCompatActivity {
     int route_ID;
     Route route;
     public final static int REQUEST_NEW_LOCUS = 3;
+    private static final int REQUEST_EDIT_LOCUS = 4;
     Intent callbackIntent = new Intent();
     AlertDialog deleteDialog;
     AlertDialog moveDialog;
@@ -76,6 +77,7 @@ public class RouteActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent newLocusIntent = new Intent(getApplicationContext(),NewLocusActivity.class);
+                newLocusIntent.putExtra("edit",false);
                 startActivityForResult(newLocusIntent,REQUEST_NEW_LOCUS);
                 //dialog.show();
             }
@@ -97,7 +99,8 @@ public class RouteActivity extends AppCompatActivity {
     public boolean onContextItemSelected(MenuItem item) {
 
         final AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        final int locusNum = loci.get(info.position).getNum();
+        final Locus locus = loci.get(info.position);
+        final int locusNum = locus.getNum();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Delete this locus?");
@@ -177,6 +180,15 @@ public class RouteActivity extends AppCompatActivity {
                 deleteDialog.show();
                 return true;
             }
+            case (R.id.menu_loci_edit):{
+                Intent editIntent = new Intent(getApplicationContext(),NewLocusActivity.class);
+                editIntent.putExtra("edit",true);
+                editIntent.putExtra("path",locus.getThumbnail());
+                editIntent.putExtra("name",locus.getName());
+                editIntent.putExtra("pos",info.position);
+                startActivityForResult(editIntent,REQUEST_EDIT_LOCUS);
+                return true;
+            }
             case (R.id.menu_loci_move):{
                 moveDialog.show();
                 return true;
@@ -205,14 +217,15 @@ public class RouteActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode != RESULT_OK) {
-            String mssg = "Result not ok: " + requestCode;
-            Toast.makeText(getApplicationContext(),mssg,Toast.LENGTH_LONG).show();
+//            String mssg = "Result not ok: " + requestCode;
+//            Toast.makeText(getApplicationContext(),mssg,Toast.LENGTH_LONG).show();
             return;
         }
 
+        Bundle extras = data.getExtras();
+
         if (requestCode == REQUEST_NEW_LOCUS){
 
-            Bundle extras = data.getExtras();
             String name = extras.getString("name");
             String path, thumbPath;
             path = extras.getString("imgPath");
@@ -234,6 +247,27 @@ public class RouteActivity extends AppCompatActivity {
 
         }
 
+        if (requestCode == REQUEST_EDIT_LOCUS){
+            int pos = extras.getInt("pos");
+            Locus edLocus = loci.remove(pos);
+
+            boolean imgEdited = extras.getBoolean("edited");
+            String name = extras.getString("name");
+            String path, thumbPath;
+            path = extras.getString("imgPath");
+            thumbPath = extras.getString("thumbPath");
+            if (imgEdited) {
+                edLocus.setPath(path);
+                edLocus.setThumbnail(thumbPath);
+            }
+            edLocus.setName(name);
+            dbHandler.editLocus(route_ID,edLocus);
+            loci.add(pos,edLocus);
+
+
+            lociAdapter.notifyDataSetChanged();
+
+        }
 
 
 

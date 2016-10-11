@@ -19,6 +19,7 @@
     <string name="set_as_cover">Set as cover</string>
     <string name="move">Move</string>
     <string name="choose_pos">Choose new position</string>
+    <string name="edit">Edit</string>
 
 
 </resources>

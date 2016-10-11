@@ -46,47 +46,9 @@ public class NewRoute extends AppCompatActivity {
             countfrom.setText(String.valueOf(oldCount));
         }
 
-        title.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    if (v != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
-
-                }
-                return false;
-            }
-        });
-
-        descript.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    if (v != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
-
-                }
-                return false;
-            }
-        });
-
-        countfrom.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    if (v != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
-
-                }
-                return false;
-            }
-        });
+        title.setOnEditorActionListener(new hideKeyboardListener());
+        descript.setOnEditorActionListener(new hideKeyboardListener());
+        countfrom.setOnEditorActionListener(new hideKeyboardListener());
 
 
     }
@@ -122,4 +84,24 @@ public class NewRoute extends AppCompatActivity {
         }
 
     }
+
+
+    private class hideKeyboardListener implements TextView.OnEditorActionListener {
+
+        @Override
+        public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (textView != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+                }
+
+            }
+            return true;
+
+        }
+    }
+
+
+
 }

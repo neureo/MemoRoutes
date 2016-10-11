@@ -9,14 +9,36 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="eru.myapps.loboroutes.NewRoute">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:id="@+id/confirmbs">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:id="@+id/newcancel"
+            android:onClick="onCancel"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"
+            android:id="@+id/newsave"
+            android:onClick="onSave"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:id="@+id/newdata"
         android:orientation="vertical"
-        android:layout_above="@+id/confirmbs">
+        android:layout_below="@+id/confirmbs">
 
         <TextView
             android:layout_width="wrap_content"
@@ -79,28 +101,6 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:id="@+id/confirmbs">
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cancel"
-            android:id="@+id/newcancel"
-            android:onClick="onCancel"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/save"
-            android:id="@+id/newsave"
-            android:onClick="onSave"/>
-
-    </LinearLayout>
 
 </RelativeLayout>

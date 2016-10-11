@@ -2,6 +2,8 @@ package eru.myapps.loboroutes;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -61,6 +63,9 @@ public class LocusPageAdapter extends PagerAdapter {
     AlertDialog dialog;
     ViewGroup cont = null;
     private static final String LOG_TAG = "ExtraRecord";
+    private ArrayList<Button> lastHookList;
+    private boolean hooksVisible = false;
+    private ArrayList<RelativeLayout> instantiatedViews = new ArrayList<>();
 
     float hookX = 0;
     float hookY = 0;
@@ -91,6 +96,8 @@ public class LocusPageAdapter extends PagerAdapter {
         }
         locus = loci.get(position);
         extras = MainActivity.dbHandler.getExtras(routeID,locus.getNum());
+        final ArrayList<Button> hookList = new ArrayList<Button>();
+        lastHookList = hookList;
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final RelativeLayout locusView = (RelativeLayout) inflater.inflate(R.layout.full_locus,container,false);
@@ -105,11 +112,12 @@ public class LocusPageAdapter extends PagerAdapter {
         final Button microButton = (Button) locusView.findViewById(R.id.locus_microButton);
         final Button imgButton = (Button) locusView.findViewById(R.id.locus_imgButton);
         final Button cancelButton = (Button) locusView.findViewById(R.id.locus_extra_cancel);
+        final Button hookShowButton = (Button) locusView.findViewById(R.id.hookShowButton);
 
 
         nameView.setText(locus.getNum() + ". " + locus.getName());
 
-        setupButtons(locusView, addExtras, locus, textButton,microButton,imgButton,cancelButton);
+        setupButtons(locusView, addExtras, locus, textButton,microButton,imgButton,cancelButton, hookShowButton, hookList);
 
         if(locus.getPath().equals(MainActivity.TEXT_DEFAULT)){
             imageView.setImageResource(R.drawable.locus_default);
@@ -134,6 +142,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 if (addingExtra){
                     addingExtra = false;
                     locusView.removeView(lastHook);
+                    hookList.remove(lastHook);
                     addExtras.setVisibility(View.INVISIBLE);
                 }
             }
@@ -144,6 +153,7 @@ public class LocusPageAdapter extends PagerAdapter {
             public boolean onLongClick(View view) {
                 if (addingExtra){
                     hookGroup.removeView(lastHook);
+                    hookList.remove(lastHook);
                 }
                 addingExtra = true;
                 int x = Math.round(hookX);
@@ -168,13 +178,17 @@ public class LocusPageAdapter extends PagerAdapter {
         });
 
 
-        addHooks(locusView, extras);
+        addHooks(locusView, extras, hookList);
 
         container.addView(locusView);
+        instantiatedViews.add(locusView);
         return locusView;
     }
 
-    private void setupButtons(final RelativeLayout locusView,final LinearLayout addExtras, final Locus l, Button textButton, Button microButton, Button imgButton, Button cancelButton) {
+
+
+
+    private void setupButtons(final RelativeLayout locusView, final LinearLayout addExtras, final Locus l, Button textButton, Button microButton, Button imgButton, Button cancelButton, final Button hookShowButton, final ArrayList<Button> hookList) {
 
         textButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -184,25 +198,27 @@ public class LocusPageAdapter extends PagerAdapter {
 
                 View builderView = inflater.inflate(R.layout.dialog_extra_text,null);
                 builder.setView(builderView);
+                final EditText dialogEdit = (EditText) dialog.findViewById(R.id.extra_text);
+
                 builder.setTitle(R.string.add_text);
                 builder.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        EditText dialogEdit = (EditText) dialog.findViewById(R.id.extra_text);
                         String text = dialogEdit.getText().toString();
                         Extra newExtra = new Extra(routeID,l.getNum(),Extra.TYPE_TEXT,text,(int)hookX,(int)hookY,-1);
                         newExtra.setID(MainActivity.dbHandler.addExtra(routeID,newExtra));
                         extras.add(newExtra);
                         dialog.dismiss();
                         locusView.removeView(lastHook);
-                        addHook(locusView, newExtra);
+                        hookList.remove(lastHook);
+                        addHook(locusView, newExtra, hookList);
                     }
                 });
                 builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 //                        hookGroup.removeView(lastHook);
-                        dialog.dismiss();
+                        dialog.cancel();
                     }
                 });
                 dialog = builder.create();
@@ -210,6 +226,7 @@ public class LocusPageAdapter extends PagerAdapter {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
                         locusView.removeView(lastHook);
+                        hookList.remove(lastHook);
                     }
                 });
                 dialog.show();
@@ -255,7 +272,8 @@ public class LocusPageAdapter extends PagerAdapter {
                             newExtra.setID(MainActivity.dbHandler.addExtra(routeID,newExtra));
                             extras.add(newExtra);
                             locusView.removeView(lastHook);
-                            addHook(locusView,newExtra);
+                            hookList.remove(lastHook);
+                            addHook(locusView,newExtra,hookList);
                             dialog.dismiss();
                         }else{
                             dialog.cancel();
@@ -269,6 +287,7 @@ public class LocusPageAdapter extends PagerAdapter {
                     public void onCancel(DialogInterface dialogInterface) {
                         recordListener.discard();
                         locusView.removeView(lastHook);
+                        hookList.remove(lastHook);
                     }
                 });
                 dialog.show();
@@ -299,6 +318,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 cameraButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        lastHookList = hookList;
                         ((LocusActivity) context).sendCameraIntent(locusView,(int) hookX,(int) hookY,l.getNum());
                         dialog.dismiss();
 
@@ -308,6 +328,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 galleryButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        lastHookList = hookList;
                         ((LocusActivity) context).sendGalleryIntent(locusView,(int) hookX,(int) hookY,l.getNum());
                         dialog.dismiss();
 
@@ -319,12 +340,14 @@ public class LocusPageAdapter extends PagerAdapter {
                     @Override
                     public void onDismiss(DialogInterface dialogInterface) {
                         locusView.removeView(lastHook);
+                        hookList.remove(lastHook);
                     }
                 });
                 dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialogInterface) {
                         locusView.removeView(lastHook);
+                        hookList.remove(lastHook);
                     }
                 });
                 dialog.show();
@@ -344,14 +367,27 @@ public class LocusPageAdapter extends PagerAdapter {
             public void onClick(View view) {
                 addExtras.setVisibility(View.INVISIBLE);
                 locusView.removeView(lastHook);
+                hookList.remove(lastHook);
                 addingExtra = false;
+            }
+        });
+
+        hookShowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                switchHookVisibility(hookList);
+                if(hooksVisible){
+                    hookShowButton.setBackgroundResource(R.drawable.hide_hook);
+                }else{
+                    hookShowButton.setBackgroundResource(R.drawable.show_hook);
+                }
             }
         });
 
     }
 
 
-    public void addHook(final RelativeLayout locusView, final Extra e) {
+    public void addHook(final RelativeLayout locusView, final Extra e, final ArrayList<Button> hookList) {
         int x = e.getX();
         int y = e.getY();
         String type = e.getType();
@@ -369,6 +405,16 @@ public class LocusPageAdapter extends PagerAdapter {
 
                         TextView extraView = ( TextView) builderView.findViewById(R.id.extra_showTextView);
                         extraView.setText(text);
+                        extraView.setOnLongClickListener(new View.OnLongClickListener() {
+                            @Override
+                            public boolean onLongClick(View view) {
+                                ClipData clip = ClipData.newPlainText("Copied",text);
+                                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(context.CLIPBOARD_SERVICE);
+                                clipboard.setPrimaryClip(clip);
+                                Toast.makeText(context,"Text copied",Toast.LENGTH_SHORT).show();
+                                return true;
+                            }
+                        });
                         dialog = builder.create();
                         dialog.show();
                     }
@@ -438,6 +484,11 @@ public class LocusPageAdapter extends PagerAdapter {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         ((RelativeLayout)view.getParent()).removeView(newHook);
+                        if (hookList != null) {
+                            hookList.remove(lastHook);
+                        }else{
+                            lastHookList.remove(lastHook);
+                        }
                         MainActivity.dbHandler.deleteExtra(e);
                         notifyDataSetChanged();
 
@@ -467,12 +518,36 @@ public class LocusPageAdapter extends PagerAdapter {
 
         newHook.setLayoutParams(params);
         locusView.addView(newHook,locusView.getChildCount());
+        if (!hooksVisible){
+            newHook.setVisibility(View.INVISIBLE);
+        }
+        if (hookList != null) {
+            hookList.add(newHook);
+        }else{
+            lastHookList.add(newHook);
+        }
     }
 
+    private void switchHookVisibility(ArrayList<Button> hookList){
+        if (hookList !=  null && hookList.size()>0){
+            for (Button hook:hookList){
+                if (hooksVisible) {
+                    hook.setVisibility(View.INVISIBLE);
+                }else{
+                    hook.setVisibility(View.VISIBLE);
+                }
+            }
 
-    private void addHooks(final RelativeLayout locusView, ArrayList<Extra> extras) {
+        }
+        hooksVisible = !hooksVisible;
+        for (RelativeLayout view:instantiatedViews){
+            view.invalidate();
+        }
+    }
+
+    private void addHooks(final RelativeLayout locusView, ArrayList<Extra> extras, final ArrayList<Button> hookList) {
         for (final Extra e :extras){
-            addHook(locusView,e);
+            addHook(locusView,e,hookList);
         }
     }
 
@@ -496,6 +571,7 @@ public class LocusPageAdapter extends PagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         container.removeView((RelativeLayout) object);
+        instantiatedViews.remove(object);
     }
 
 

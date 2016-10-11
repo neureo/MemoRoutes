@@ -315,6 +315,22 @@ public class DBHandler extends SQLiteOpenHelper {
 
     }
 
+    public void editLocus(int route_id, Locus edLocus) {
+        String query = "UPDATE " + TABLE_LOCI + " SET " + COLUMN_NAME + " = \"" + edLocus.getName() +
+                "\", " + COLUMN_PATH + " = \"" + edLocus.getPath() + "\", " + COLUMN_THUMB + " = \"" + edLocus.getThumbnail() +
+                "\"" +
+                " WHERE " + COLUMN_ROUTE_ID + " = " + route_id + " AND " + COLUMN_NUM + " = "+ edLocus.getNum() + ";";
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL(query);
+
+        db.close();
+    }
+
+
+
+
+
     public String getCover(int id) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = db.rawQuery("SELECT * FROM " + TABLE_ROUTES +

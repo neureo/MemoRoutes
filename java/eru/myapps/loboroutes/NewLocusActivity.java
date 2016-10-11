@@ -50,6 +50,10 @@ public class NewLocusActivity extends AppCompatActivity {
     Bitmap thumbnail;
     boolean takenFromCamera = false;
     boolean imageSelected = false;
+    boolean editing = false;
+    Bitmap currThumb;
+    Locus editLocus;
+    int editPos;
 
 
     @Override
@@ -59,21 +63,18 @@ public class NewLocusActivity extends AppCompatActivity {
         nameEdit = (EditText) findViewById(R.id.locusNameEdit);
         preview = (ImageView) findViewById(R.id.locusPicPreview);
         image = BitmapFactory.decodeResource(getResources(),R.drawable.bg);
+        Bundle extras = getIntent().getExtras();
+        editing = extras.getBoolean("edit");
 
+        if (editing == true){
+            String currThumbPath = extras.getString("path");
+            String name = extras.getString("name");
+            editPos = extras.getInt("pos");
+            preview.setImageBitmap(BitmapFactory.decodeFile(currThumbPath));
+            nameEdit.setText(name);
+        }
 
-        nameEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    if (v != null) {
-                        InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
-
-                }
-                return false;
-            }
-        });
+        nameEdit.setOnEditorActionListener(new hideKeyboardListener());
 
 
         final String[] items = new String[]{"From Camera", "From File"};
@@ -143,9 +144,15 @@ public class NewLocusActivity extends AppCompatActivity {
     public void onSave(View view) {
         Intent saveLocusIntent = new Intent();
 
-        boolean success = false;
         String name = nameEdit.getText().toString();
+
+        if (editing){
+            saveLocusIntent.putExtra("pos",editPos);
+            saveLocusIntent.putExtra("edited",imageSelected);
+        }
+
         if (imageSelected) {
+
             String stamp = String.valueOf(System.currentTimeMillis());
 
             File thumbFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/locus_" + stamp + "_thumb.png");
@@ -162,6 +169,7 @@ public class NewLocusActivity extends AppCompatActivity {
         } else{
             saveLocusIntent.putExtra("imgPath", MainActivity.TEXT_DEFAULT);
             saveLocusIntent.putExtra("thumbPath", MainActivity.TEXT_DEFAULT);
+
 
         }
         saveLocusIntent.putExtra("name",name);
@@ -373,5 +381,20 @@ public class NewLocusActivity extends AppCompatActivity {
 
 
 
+    private class hideKeyboardListener implements TextView.OnEditorActionListener {
+
+        @Override
+        public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                if (textView != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(getApplicationContext().INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(textView.getWindowToken(), 0);
+                }
+
+            }
+            return true;
+
+        }
+    }
 }
 

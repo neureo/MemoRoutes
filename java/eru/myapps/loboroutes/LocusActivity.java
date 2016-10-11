@@ -115,7 +115,7 @@ public class LocusActivity extends AppCompatActivity {
             saverTask.execute();
             Extra newExtra = new Extra(routeID, lastNum, Extra.TYPE_IMG, fullFile.getAbsolutePath(), lastX, lastY, -1);
             newExtra.setID(MainActivity.dbHandler.addExtra(routeID,  newExtra));
-            adapter.addHook(locusView,newExtra);
+            adapter.addHook(locusView,newExtra,null);
             adapter.notifyDataSetChanged();
         }
 
@@ -142,7 +142,7 @@ public class LocusActivity extends AppCompatActivity {
 
                 Extra newExtra = new Extra(routeID, lastNum, Extra.TYPE_IMG, fullFile.getAbsolutePath(), lastX, lastY, -1);
                 newExtra.setID(MainActivity.dbHandler.addExtra(routeID,  newExtra));
-                adapter.addHook(locusView,newExtra);
+                adapter.addHook(locusView,newExtra,null);
                 adapter.notifyDataSetChanged();
 
 
