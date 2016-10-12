@@ -61,7 +61,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPersonName"
+            android:inputType="textCapSentences"
             android:hint="Name"
             android:maxLength="20"
             android:ems="10"

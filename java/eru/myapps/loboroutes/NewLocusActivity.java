@@ -66,7 +66,7 @@ public class NewLocusActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         editing = extras.getBoolean("edit");
 
-        if (editing == true){
+        if (editing){
             String currThumbPath = extras.getString("path");
             String name = extras.getString("name");
             editPos = extras.getInt("pos");
