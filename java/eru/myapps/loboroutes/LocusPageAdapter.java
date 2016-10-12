@@ -212,7 +212,7 @@ public class LocusPageAdapter extends PagerAdapter {
 
                 View builderView = inflater.inflate(R.layout.dialog_extra_text,null);
                 builder.setView(builderView);
-                final EditText dialogEdit = (EditText) dialog.findViewById(R.id.extra_text);
+                final EditText dialogEdit = (EditText) builderView.findViewById(R.id.extra_text);
 
                 builder.setTitle(R.string.add_text);
                 builder.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
