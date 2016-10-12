@@ -51,6 +51,7 @@ import java.util.ArrayList;
  */
 public class LocusPageAdapter extends PagerAdapter {
 
+
     private ArrayList<Locus> loci;
     ArrayList<Extra> extras;
     private Context context;
@@ -102,7 +103,8 @@ public class LocusPageAdapter extends PagerAdapter {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final RelativeLayout locusView = (RelativeLayout) inflater.inflate(R.layout.full_locus,container,false);
 
-        locusView.setTag(position);
+        locusView.setTag(R.string.TAG_EXTRAS,extras);
+        locusView.setTag(R.string.TAG_HOOKS,hookList);
 
         ImageView imageView = (ImageView) locusView.findViewById(R.id.imageView);
         TextView nameView = (TextView) locusView.findViewById(R.id.locus_full_name);
@@ -113,6 +115,16 @@ public class LocusPageAdapter extends PagerAdapter {
         final Button imgButton = (Button) locusView.findViewById(R.id.locus_imgButton);
         final Button cancelButton = (Button) locusView.findViewById(R.id.locus_extra_cancel);
         final Button hookShowButton = (Button) locusView.findViewById(R.id.hookShowButton);
+
+
+        if(hooksVisible){
+            hookShowButton.setBackgroundResource(R.drawable.hide_hook);
+        }else{
+            hookShowButton.setBackgroundResource(R.drawable.show_hook);
+        }
+
+
+        locusView.setTag(R.string.TAG_SHOWBUTTON,hookShowButton);
 
 
         nameView.setText(locus.getNum() + ". " + locus.getName());
@@ -155,6 +167,8 @@ public class LocusPageAdapter extends PagerAdapter {
                     hookGroup.removeView(lastHook);
                     hookList.remove(lastHook);
                 }
+                hooksVisible = true;
+                setHookVisibility(true);
                 addingExtra = true;
                 int x = Math.round(hookX);
                 int y = Math.round(hookY) ;
@@ -375,12 +389,8 @@ public class LocusPageAdapter extends PagerAdapter {
         hookShowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                switchHookVisibility(hookList);
-                if(hooksVisible){
-                    hookShowButton.setBackgroundResource(R.drawable.hide_hook);
-                }else{
-                    hookShowButton.setBackgroundResource(R.drawable.show_hook);
-                }
+                hooksVisible = ! hooksVisible;
+                setHookVisibility(hooksVisible);
             }
         });
 
@@ -528,20 +538,30 @@ public class LocusPageAdapter extends PagerAdapter {
         }
     }
 
-    private void switchHookVisibility(ArrayList<Button> hookList){
-        if (hookList !=  null && hookList.size()>0){
-            for (Button hook:hookList){
-                if (hooksVisible) {
-                    hook.setVisibility(View.INVISIBLE);
-                }else{
-                    hook.setVisibility(View.VISIBLE);
-                }
-            }
+    private void setHookVisibility(boolean visible ){
 
-        }
-        hooksVisible = !hooksVisible;
-        for (RelativeLayout view:instantiatedViews){
-            view.invalidate();
+        for(int i = 0; i < instantiatedViews.size();i++){
+            View view;
+            try{
+                view = instantiatedViews.get(i);
+                Button showHookButton = (Button) view.getTag(R.string.TAG_SHOWBUTTON);
+                if(visible){
+                    showHookButton.setBackgroundResource(R.drawable.hide_hook);
+                }else{
+                    showHookButton.setBackgroundResource(R.drawable.show_hook);
+                }
+                ArrayList<Button> hooks = (ArrayList<Button>) view.getTag(R.string.TAG_HOOKS);
+                for (Button hook:hooks){
+                    if (visible) {
+                        hook.setVisibility(View.VISIBLE);
+                    }else{
+                        hook.setVisibility(View.INVISIBLE);
+                    }
+                }
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
 

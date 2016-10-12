@@ -20,6 +20,9 @@
     <string name="move">Move</string>
     <string name="choose_pos">Choose new position</string>
     <string name="edit">Edit</string>
+    <string name="TAG_HOOKS">Hooks</string>
+    <string name="TAG_SHOWBUTTON">Show Button</string>
+    <string name="TAG_EXTRAS">Extras</string>
 
 
 </resources>
