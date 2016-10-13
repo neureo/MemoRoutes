@@ -1,11 +1,15 @@
 package eru.myapps.loboroutes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +29,7 @@ public class RouteActivity extends AppCompatActivity {
     LociAdapter lociAdapter;
     TextView routeTitleView;
     Button addButton;
+    Button infoButton;
 //    String route_title;
     int countFrom;
     int route_ID;
@@ -34,6 +39,7 @@ public class RouteActivity extends AppCompatActivity {
     Intent callbackIntent = new Intent();
     AlertDialog deleteDialog;
     AlertDialog moveDialog;
+    AlertDialog infoDialog;
 
 
 
@@ -53,6 +59,41 @@ public class RouteActivity extends AppCompatActivity {
         lociGrid = (ListView) findViewById(R.id.loci_grid);
         loci = dbHandler.getLoci(route_ID);
         countFrom = route.getCountFrom();
+        infoButton = (Button) findViewById(R.id.route_Info);
+
+        final Context context = this ;
+
+        infoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                LayoutInflater inflater = getLayoutInflater();
+                View builderView = inflater.inflate(R.layout.dialog_show_text,null);
+                builder.setView(builderView);
+
+                TextView extraView = ( TextView) builderView.findViewById(R.id.extra_showTextView);
+                String routeInfo = route.getDescription();
+                if (routeInfo.length() == 0){
+                    routeInfo = "No description found! \n\n" +
+                            "Go back to your routes overview, then press and hold selected route to edit.>";
+                }
+                final String copyText = routeInfo;
+                extraView.setText(routeInfo);
+                extraView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        ClipData clip = ClipData.newPlainText("Copied",copyText);
+                        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(context.CLIPBOARD_SERVICE);
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(context,"Text copied",Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+                infoDialog = builder.create();
+                infoDialog.show();
+
+            }
+        });
 
 
         addButton = (Button) findViewById(R.id.add_button);

@@ -19,14 +19,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".NewRoute"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".RouteActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".NewLocusActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".LocusActivity"
-            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".NewRoute"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".RouteActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".NewLocusActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".LocusActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ExtraPicActivity"></activity>
     </application>
 
 </manifest>

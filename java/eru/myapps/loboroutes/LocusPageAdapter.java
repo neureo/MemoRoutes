@@ -6,7 +6,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,38 +15,33 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.ThumbnailUtils;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 /**
  * Created by elopezmo on 29.09.16.
+ *
+ * This pager adapter handles browsing through the full view of loci,
+ * attaching and showing/hiding loci content (text, audio, images)
  */
 public class LocusPageAdapter extends PagerAdapter {
 
@@ -118,13 +112,14 @@ public class LocusPageAdapter extends PagerAdapter {
 
 
         if(hooksVisible){
-            hookShowButton.setBackgroundResource(R.drawable.hide_hook);
-        }else{
             hookShowButton.setBackgroundResource(R.drawable.show_hook);
+        }else{
+            hookShowButton.setBackgroundResource(R.drawable.hide_hook);
         }
 
 
         locusView.setTag(R.string.TAG_SHOWBUTTON,hookShowButton);
+        locusView.setTag(R.string.TAG_ADDEXTRAS,addExtras);
 
 
         nameView.setText(locus.getNum() + ". " + locus.getName());
@@ -167,13 +162,13 @@ public class LocusPageAdapter extends PagerAdapter {
                     hookGroup.removeView(lastHook);
                     hookList.remove(lastHook);
                 }
-                hooksVisible = true;
-                setHookVisibility(true);
+                if (!hooksVisible){
+                    setHookVisibility(true);
+                }
                 addingExtra = true;
                 int x = Math.round(hookX);
                 int y = Math.round(hookY) ;
                 hookGroup = (RelativeLayout) view.getParent();
-                Toast.makeText(context,"pos:("+ x+","+y+")",Toast.LENGTH_SHORT).show();
                 addExtras.setVisibility(View.VISIBLE);
 
                 Button newHook = new Button(container.getContext());
@@ -231,7 +226,6 @@ public class LocusPageAdapter extends PagerAdapter {
                 builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-//                        hookGroup.removeView(lastHook);
                         dialog.cancel();
                     }
                 });
@@ -389,8 +383,8 @@ public class LocusPageAdapter extends PagerAdapter {
         hookShowButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                hooksVisible = ! hooksVisible;
-                setHookVisibility(hooksVisible);
+
+                setHookVisibility(!hooksVisible);
             }
         });
 
@@ -403,6 +397,7 @@ public class LocusPageAdapter extends PagerAdapter {
         String type = e.getType();
         final String text = e.getSource();
         final Button newHook = new Button(locusView.getContext());
+
         switch (type) {
             case Extra.TYPE_TEXT:
                 newHook.setBackgroundResource(R.drawable.abc_on);
@@ -477,6 +472,12 @@ public class LocusPageAdapter extends PagerAdapter {
 
                         ImageView extraView = (ImageView) builderView.findViewById(R.id.extra_showImgView);
                         extraView.setImageBitmap(BitmapFactory.decodeFile(e.getSource()));
+                        extraView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ((LocusActivity) context).sendImageViewIntent(e);
+                            }
+                        });
                         dialog = builder.create();
                         dialog.show();
                     }
@@ -540,17 +541,27 @@ public class LocusPageAdapter extends PagerAdapter {
 
     private void setHookVisibility(boolean visible ){
 
+        hooksVisible = visible;
         for(int i = 0; i < instantiatedViews.size();i++){
             View view;
             try{
                 view = instantiatedViews.get(i);
                 Button showHookButton = (Button) view.getTag(R.string.TAG_SHOWBUTTON);
-                if(visible){
-                    showHookButton.setBackgroundResource(R.drawable.hide_hook);
-                }else{
-                    showHookButton.setBackgroundResource(R.drawable.show_hook);
-                }
+                LinearLayout addExtras = (LinearLayout) view.getTag(R.string.TAG_ADDEXTRAS);
                 ArrayList<Button> hooks = (ArrayList<Button>) view.getTag(R.string.TAG_HOOKS);
+                final Toast info;
+                if(visible){
+                    showHookButton.setBackgroundResource(R.drawable.show_hook);
+                    info = Toast.makeText(context,"Showing contents",Toast.LENGTH_SHORT);
+                }else{
+                    showHookButton.setBackgroundResource(R.drawable.hide_hook);
+                    info = Toast.makeText(context,"Hiding contents",Toast.LENGTH_SHORT);
+                    if (addingExtra){
+                        addingExtra = false;
+                        addExtras.setVisibility(View.INVISIBLE);
+                        ((RelativeLayout) view).removeView(lastHook);
+                    }
+                }
                 for (Button hook:hooks){
                     if (visible) {
                         hook.setVisibility(View.VISIBLE);
@@ -558,6 +569,16 @@ public class LocusPageAdapter extends PagerAdapter {
                         hook.setVisibility(View.INVISIBLE);
                     }
                 }
+                info.show();
+
+                /** show toast only for 800 ms**/
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        info.cancel();
+                    }
+                }, 800);
 
             }catch(Exception e){
                 e.printStackTrace();

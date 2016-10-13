@@ -168,6 +168,11 @@ public class LocusActivity extends AppCompatActivity {
         return result;
     }
 
+    public void sendImageViewIntent(Extra e) {
+        Intent extraViewIntent = new Intent(getApplicationContext(),ExtraPicActivity.class);
+        extraViewIntent.putExtra("path",e.getSource());
+        startActivity(extraViewIntent);
+    }
 
 
     class BitmapSaverTask extends AsyncTask<Void, Void, Void> {

@@ -3,6 +3,8 @@ package eru.myapps.loboroutes;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
@@ -61,49 +63,8 @@ public class LociAdapter extends ArrayAdapter<Locus> {
         return locusView;
     }
 
-    public Bitmap decodeBitmapFromPath(String res, int reqWidth, int reqHeight) {
-
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(res, options);
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(res, options);
-    }
 
 
-    public int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight/2;
-        final int width = options.outWidth/2;
-        if (height == 0){
-            return 2;
-        }
-        if (width == 0){
-            return 1;
-        }
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
-
-    }
 
     class BitmapLoader extends AsyncTask<Void, Void, Void> {
         private final WeakReference<ImageView> imageViewReference;
@@ -124,6 +85,7 @@ public class LociAdapter extends ArrayAdapter<Locus> {
             int h = image.getHeight();
             int dim = Math.min(w,h);
             image = ThumbnailUtils.extractThumbnail(image,dim,dim);
+            image = addDoubleBorder(image,2);
             return null;
         }
 
@@ -143,5 +105,20 @@ public class LociAdapter extends ArrayAdapter<Locus> {
         }
 
     }
+
+    private Bitmap addDoubleBorder(Bitmap bmp, int bordersize){
+        Bitmap singleborder = addBorder(bmp,bordersize, Color.WHITE);
+        return addBorder(singleborder,bordersize,Color.BLACK);
+    }
+
+
+    private Bitmap addBorder(Bitmap bmp, int borderSize, int color) {
+        Bitmap bmpWithBorder = Bitmap.createBitmap(bmp.getWidth() + borderSize * 2, bmp.getHeight() + borderSize * 2, bmp.getConfig());
+        Canvas canvas = new Canvas(bmpWithBorder);
+        canvas.drawColor(color);
+        canvas.drawBitmap(bmp, borderSize, borderSize, null);
+        return bmpWithBorder;
+    }
+
 
 }

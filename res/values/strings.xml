@@ -23,6 +23,7 @@
     <string name="TAG_HOOKS">Hooks</string>
     <string name="TAG_SHOWBUTTON">Show Button</string>
     <string name="TAG_EXTRAS">Extras</string>
+    <string name="TAG_ADDEXTRAS">\"ADDEXTRAS\"</string>
 
 
 </resources>
