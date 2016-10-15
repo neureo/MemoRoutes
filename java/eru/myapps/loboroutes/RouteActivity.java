@@ -75,7 +75,7 @@ public class RouteActivity extends AppCompatActivity {
                 String routeInfo = route.getDescription();
                 if (routeInfo.length() == 0){
                     routeInfo = "No description found! \n\n" +
-                            "Go back to your routes overview, then press and hold selected route to edit.>";
+                            "Go back to your routes overview, then press and hold selected route to edit.";
                 }
                 final String copyText = routeInfo;
                 extraView.setText(routeInfo);
@@ -258,8 +258,6 @@ public class RouteActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode != RESULT_OK) {
-//            String mssg = "Result not ok: " + requestCode;
-//            Toast.makeText(getApplicationContext(),mssg,Toast.LENGTH_LONG).show();
             return;
         }
 

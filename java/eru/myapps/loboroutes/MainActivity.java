@@ -2,11 +2,16 @@ package eru.myapps.loboroutes;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -32,6 +37,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -43,8 +49,6 @@ public class MainActivity extends AppCompatActivity {
     ListView routeListView;
     ArrayAdapter<Route> routeAdapter;
     public static DBHandler dbHandler;
-
-
     public static final int REQUEST_READ_EXTERNAL_STORAGE_CODE = 22;
     public static final int REQUEST_RECORD_AUDIO = 23;
     public static final int PICK_FROM_CAMERA = 100;
@@ -57,8 +61,13 @@ public class MainActivity extends AppCompatActivity {
     public static String folder_loci = folder_main + "/loci";
 
     public static final String TEXT_DEFAULT = "default";
+    public static final String PREFERENCES = "App_Preferences";
+    public static final String FIRST_RUN_KEY = "App_Preferences";
     private int lastCalledRouteIndex;
     AlertDialog deleteDialog;
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
+    private boolean firstRun;
 
 
 
@@ -71,9 +80,20 @@ public class MainActivity extends AppCompatActivity {
         createFolder(folder_extra);
         createFolder(folder_loci);
 
+        preferences = getSharedPreferences(PREFERENCES,MODE_PRIVATE);
+        editor = preferences.edit();
+        firstRun = preferences.getBoolean(FIRST_RUN_KEY,true);
 
 
         dbHandler = new DBHandler(this,null,null,1);
+
+        if (firstRun){
+            if (createTutorialRoute()){
+                editor.putBoolean(FIRST_RUN_KEY,false);
+                editor.commit();
+            }
+        }
+
         routes = dbHandler.getRoutes();
 
         //dbHandler.onUpgrade(dbHandler.getWritableDatabase(),2,3);
@@ -116,6 +136,42 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private boolean createTutorialRoute() {
+        if (!askPermissions()){
+            return false;
+        }
+        int[] tutRes = {R.drawable.tut1,R.drawable.tut2,R.drawable.tut3,R.drawable.tut4,R.drawable.tut5, R.drawable.tut6};
+        ArrayList<Bitmap>  bitmaps = new ArrayList<>();
+        for (int res:tutRes){
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(),res);
+            bitmaps.add(bitmap);
+        }
+
+
+        String title = "Tutorial";
+        String desc = "Here you will see your route's description";
+        Route tutorial = new Route(title,desc,1,0);
+        dbHandler.addRoute(tutorial);
+        tutorial.setId(dbHandler.getRouteID(title));
+
+        int num = 1;
+        for (Bitmap bitmap: bitmaps){
+            String stamp = String.valueOf(System.currentTimeMillis());
+
+            File fullFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/locus_" + stamp + ".png");
+
+
+            BitmapSaverTask fullTask = new BitmapSaverTask(getApplicationContext(), bitmap, fullFile.getPath());
+            fullTask.execute();
+
+            Locus locus = new Locus(num,"",fullFile.getAbsolutePath(),fullFile.getAbsolutePath());
+            dbHandler.addLocus(tutorial.getId(),locus);
+            num++;
+        }
+
+        return true;
     }
 
     private void createFolder(String folder) {
@@ -232,16 +288,63 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void askPermissions(){
+    public boolean askPermissions(){
         if ( Build.VERSION.SDK_INT > 22 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
+
             if (ContextCompat.checkSelfPermission(getApplicationContext(),
                     Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
                 Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
-                return;
+                return false;
             }
+        }
+        return true;
+
+    }
+
+    class BitmapSaverTask extends AsyncTask<Void, Void, Void> {
+        private Bitmap image;
+        private String path;
+        private int data = 0;
+        private boolean addToGallery;
+        private Context context;
+
+        public BitmapSaverTask(Context context,Bitmap image, String path){
+            this.image = image;
+            this.path = path;
+            this.context = context;
+        }
+
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            File file = new File(path);
+            FileOutputStream out = null;
+            try{
+                out = new FileOutputStream(file);
+                image.compress(Bitmap.CompressFormat.JPEG,100,out);
+            }catch(Exception ex){
+                ex.printStackTrace();
+            }finally {
+                if (out != null){
+                    try{
+                        out.close();
+                    }catch(Exception ex){
+                        ex.printStackTrace();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
         }
 
     }

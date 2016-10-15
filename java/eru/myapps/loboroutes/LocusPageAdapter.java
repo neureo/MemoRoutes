@@ -59,7 +59,7 @@ public class LocusPageAdapter extends PagerAdapter {
     ViewGroup cont = null;
     private static final String LOG_TAG = "ExtraRecord";
     private ArrayList<Button> lastHookList;
-    private boolean hooksVisible = false;
+    private boolean hooksVisible = true;
     private ArrayList<RelativeLayout> instantiatedViews = new ArrayList<>();
 
     float hookX = 0;
@@ -311,6 +311,7 @@ public class LocusPageAdapter extends PagerAdapter {
                 lastHook.setBackgroundResource(R.drawable.img_on);
                 final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
+                builder.setTitle("Choose source:");
                 View builderView = inflater.inflate(R.layout.dialog_extra_img,null);
                 builder.setView(builderView);
                 builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

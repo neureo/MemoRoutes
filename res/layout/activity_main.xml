@@ -10,10 +10,20 @@
     tools:context="eru.myapps.loboroutes.MainActivity">
 
 
+    <TextView
+        android:id="@+id/myRoutes"
+        android:text="Memory Routes:"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"/>
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/addnew"
+        android:layout_below="@+id/myRoutes"
         android:id="@+id/routelist">
 
     </ListView>

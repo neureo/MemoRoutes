@@ -99,7 +99,6 @@ public class LocusActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (!(resultCode == RESULT_OK)) {
-            Toast.makeText(getApplicationContext(), "activity  not ok", Toast.LENGTH_SHORT).show();
             return;
         }
         if (requestCode == MainActivity.PICK_FROM_CAMERA) {

@@ -62,7 +62,7 @@ public class NewLocusActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_locus);
         nameEdit = (EditText) findViewById(R.id.locusNameEdit);
         preview = (ImageView) findViewById(R.id.locusPicPreview);
-        image = BitmapFactory.decodeResource(getResources(),R.drawable.bg);
+        image = BitmapFactory.decodeResource(getResources(),R.drawable.locus_default);
         Bundle extras = getIntent().getExtras();
         editing = extras.getBoolean("edit");
 

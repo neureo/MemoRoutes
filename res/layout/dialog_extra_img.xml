@@ -3,24 +3,22 @@
     android:orientation="horizontal"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:gravity="center_horizontal">
+    android:gravity="center">
 
 
 <Button
     android:id="@+id/extra_addCamera"
-    android:layout_width="60dp"
-    android:layout_height="60dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_margin="10dp"
-    android:backgroundTint="#000099"
-    android:background="@android:drawable/ic_menu_camera"/>
+    android:text="@string/camera"/>
 
 <Button
     android:id="@+id/extra_addGallery"
-    android:layout_width="60dp"
-    android:layout_height="60dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_margin="10dp"
-    android:backgroundTint="#009900"
-    android:background="@android:drawable/ic_menu_gallery"/>
+    android:text="@string/gallery"/>
 
 
 </LinearLayout>
