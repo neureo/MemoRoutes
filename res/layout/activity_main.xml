@@ -10,6 +10,9 @@
     tools:context="eru.myapps.loboroutes.MainActivity">
 
 
+
+
+
     <TextView
         android:id="@+id/myRoutes"
         android:text="Memory Routes:"
@@ -37,7 +40,16 @@
         android:layout_alignParentBottom="true"
         android:textAlignment="center"/>
 
+    <TextView
+        android:background="#005500"
+        android:id="@+id/initializeScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Initializing.\n\nPlease wait..."
+        android:visibility="invisible">
 
+    </TextView>
 
 
 </RelativeLayout>

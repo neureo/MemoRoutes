@@ -15,6 +15,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +26,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     ListView routeListView;
     ArrayAdapter<Route> routeAdapter;
+    TextView initScreen;
     public static DBHandler dbHandler;
     public static final int REQUEST_READ_EXTERNAL_STORAGE_CODE = 22;
     public static final int REQUEST_RECORD_AUDIO = 23;
@@ -76,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        routeListView = (ListView) findViewById(R.id.routelist);
+        addButton = (Button) findViewById( R.id.addnew);
+        initScreen = (TextView) findViewById(R.id.initializeScreen);
+
+
         createFolder(folder_main);
         createFolder(folder_extra);
         createFolder(folder_loci);
@@ -83,15 +91,13 @@ public class MainActivity extends AppCompatActivity {
         preferences = getSharedPreferences(PREFERENCES,MODE_PRIVATE);
         editor = preferences.edit();
         firstRun = preferences.getBoolean(FIRST_RUN_KEY,true);
-
+        //firstRun = true;
 
         dbHandler = new DBHandler(this,null,null,1);
 
         if (firstRun){
-            if (createTutorialRoute()){
-                editor.putBoolean(FIRST_RUN_KEY,false);
-                editor.commit();
-            }
+            askPermissions();
+            //Toast.makeText(getApplicationContext(),"Creating Tutorial, please wait",Toast.LENGTH_LONG).show();
         }
 
         routes = dbHandler.getRoutes();
@@ -100,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
 
         routeAdapter = new RouteAdapter2(this,routes);
 
-        routeListView = (ListView) findViewById(R.id.routelist);
         routeListView.setAdapter(routeAdapter);
 
         registerForContextMenu(routeListView);
@@ -121,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         // retain instances
-        addButton = (Button) findViewById( R.id.addnew);
         //LinkedList<String> titles = new LinkedList<String>();
 
         addButton.setOnClickListener(new Button.OnClickListener(){
@@ -138,14 +142,30 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean createTutorialRoute() {
-        if (!askPermissions()){
-            return false;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_READ_EXTERNAL_STORAGE_CODE){
+            if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                initScreen.setVisibility(View.VISIBLE);
+                addButton.setVisibility(View.INVISIBLE);
+                getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+                createTutorialRoute();
+
+            }
         }
+    }
+
+    private boolean createTutorialRoute() {
+
         int[] tutRes = {R.drawable.tut1,R.drawable.tut2,R.drawable.tut3,R.drawable.tut4,R.drawable.tut5, R.drawable.tut6};
         ArrayList<Bitmap>  bitmaps = new ArrayList<>();
         for (int res:tutRes){
             Bitmap bitmap = BitmapFactory.decodeResource(getResources(),res);
+            Bitmap thumb =  scaleBitmap(bitmap,300,300);
+
             bitmaps.add(bitmap);
         }
 
@@ -161,12 +181,18 @@ public class MainActivity extends AppCompatActivity {
             String stamp = String.valueOf(System.currentTimeMillis());
 
             File fullFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/locus_" + stamp + ".png");
+            File thumbFile = new File(Environment.getExternalStorageDirectory(), MainActivity.folder_loci + "/thumb_" + stamp + ".png");
 
-
-            BitmapSaverTask fullTask = new BitmapSaverTask(getApplicationContext(), bitmap, fullFile.getPath());
+            Bitmap thumb = scaleBitmap(bitmap,300,300);
+            boolean end = (num >= bitmaps.size());
+            BitmapSaverTask fullTask = new BitmapSaverTask(getApplicationContext(), bitmap, fullFile.getPath(),end);
             fullTask.execute();
 
-            Locus locus = new Locus(num,"",fullFile.getAbsolutePath(),fullFile.getAbsolutePath());
+            BitmapSaverTask thumbTask = new BitmapSaverTask(getApplicationContext(), thumb, thumbFile.getPath(),false);
+            thumbTask.execute();
+
+
+            Locus locus = new Locus(num,"",fullFile.getAbsolutePath(),thumbFile.getAbsolutePath());
             dbHandler.addLocus(tutorial.getId(),locus);
             num++;
         }
@@ -292,13 +318,18 @@ public class MainActivity extends AppCompatActivity {
         if ( Build.VERSION.SDK_INT > 22 && ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO},
+                    MainActivity.REQUEST_READ_EXTERNAL_STORAGE_CODE);
 
-            if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
-                return false;
-            }
+        } else if (Build.VERSION.SDK_INT <= 22 && ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+            initScreen.setVisibility(View.VISIBLE);
+            addButton.setVisibility(View.INVISIBLE);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            createTutorialRoute();
+
         }
         return true;
 
@@ -307,14 +338,14 @@ public class MainActivity extends AppCompatActivity {
     class BitmapSaverTask extends AsyncTask<Void, Void, Void> {
         private Bitmap image;
         private String path;
-        private int data = 0;
-        private boolean addToGallery;
+        private boolean end;
         private Context context;
 
-        public BitmapSaverTask(Context context,Bitmap image, String path){
+        public BitmapSaverTask(Context context,Bitmap image, String path, boolean end){
             this.image = image;
             this.path = path;
             this.context = context;
+            this.end = end;
         }
 
 
@@ -344,10 +375,41 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            if (end) {
+                routeAdapter.notifyDataSetChanged();
+                //Toast.makeText(getApplicationContext(),"Tutorial created!",Toast.LENGTH_SHORT).show();
+                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+                initScreen.setVisibility(View.INVISIBLE);
+                addButton.setVisibility(View.VISIBLE);
+                routes = dbHandler.getRoutes();
+                routeAdapter = new RouteAdapter2(getApplicationContext(), routes);
+                routeListView.setAdapter(routeAdapter);
+                routeAdapter.notifyDataSetChanged();
+                editor.putBoolean(FIRST_RUN_KEY, false);
+                editor.commit();
+            }
 
         }
 
     }
+
+    public static Bitmap scaleBitmap(Bitmap bm, int maxW, int maxH){
+        int width, height;
+        Bitmap scaled;
+        float aspectRatio = bm.getWidth() / (float) bm.getHeight();
+        if (aspectRatio > 1){
+            width = maxW;
+            height = Math.round(width/aspectRatio);
+        } else {
+            height = maxH;
+            width = Math.round(height*aspectRatio);
+        }
+
+        scaled = Bitmap.createScaledBitmap(bm,width,height,false);
+        return scaled;
+
+    }
+
 
 
 
